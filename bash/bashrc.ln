@@ -1,0 +1,66 @@
+# vi rules
+set -o vi
+
+export EDITOR=vim
+
+
+# Tell ls to be colourful
+export CLICOLOR=1
+export LSCOLORS=Exfxcxdxbxegedabagacad
+export TERM="xterm-256color"
+
+# Tell grep to highlight matches
+export GREP_OPTIONS='--color=auto'
+
+if [ "$(uname)" == "Darwin" ]; then
+  if [ -f $(brew --prefix)/etc/bash_completion ]; then
+    source $(brew --prefix)/etc/bash_completion
+  fi
+else # linux
+  if [ -f /etc/bash_completion ]; then
+    source /etc/bash_completion
+  else
+    if [ ! -f ~/.git-completion.bash ]; then
+      curl https://raw.github.com/git/git/master/contrib/completion/git-completion.bash -o ~/.git-completion.bash
+      curl https://raw.github.com/git/git/master/contrib/completion/git-prompt.sh -o ~/.git-prompt.sh
+    fi
+    source ~/.git-completion.bash
+    source ~/.git-prompt.sh
+  fi
+fi
+
+# source it all
+for f in $(find -L ~/.dotfiles -name \*.bash); do
+  source $f
+done
+
+# prompt
+#   * __git_ps1 is from bash git completion, so must come last. ish.
+#export PS1='\u@\h:\w$(__git_ps1 " (%s)")\n> '
+export PS1='\[\e[0;33m\]\u\[\e[0m\]@\[\e[0;32m\]\h\[\e[0m\]:\[\e[0;34m\]\w\[\e[0m\]\$ '
+PS1="$PS1"'$([ -n "$TMUX" ] && tmux setenv TMUXPWD_$(tmux display -p "#D" | tr -d %) "$PWD")'
+
+# my binaries
+export PATH=$HOME/bin:$PATH
+
+# local stuff
+if [ -f ~/.bashrc.local ]; then
+  source ~/.bashrc.local
+fi
+
+# rvm setup
+if [ -f ~/.rvmrc ]; then
+  RVM_PATH=$(grep rvm_path ~/.rvmrc | cut -f2 -d= | tr -d \"\')
+fi
+RVM_PATH=${RVM_PATH:-$HOME/.rvm}
+if [ -s "$RVM_PATH/scripts/rvm" ]; then
+  source "$RVM_PATH/scripts/rvm"
+  PATH=$PATH:$RVM_PATH/bin # Add RVM to PATH for scripting
+fi
+
+# rbenv setup
+if which rbenv &> /dev/null; then eval "$(rbenv init -)"; fi
+
+PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
+
+source "`brew --prefix grc`/etc/grc.bashrc"
