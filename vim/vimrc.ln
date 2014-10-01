@@ -30,7 +30,7 @@ set directory=~/.vim/tmp
 syntax enable
 let g:solarized_termcolors=256
 set background=light
-colorscheme solarized
+colorscheme delek
 
 " display customization
 set number
