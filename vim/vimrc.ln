@@ -17,6 +17,8 @@ let vam_addons = [
 
 call SetupVAM(vam_addons)
 
+execute pathogen#infect('bundle/{}')
+
 " we now return to your regularly scheduled .vimrc
 let mapleader = ','
 set nocompatible
@@ -29,8 +31,8 @@ set directory=~/.vim/tmp
 " solarized setup
 syntax enable
 let g:solarized_termcolors=256
-set background=light
-colorscheme delek
+set background=dark
+colorscheme gruvbox
 
 " display customization
 set number
@@ -166,7 +168,7 @@ let g:ctrlp_custom_ignore = {
 let g:ctrlp_open_multiple_files = 't'
 
 " make tabs and trailing space obvious
-set list listchars=tab:>-,trail:-
+"set list listchars=tab:>-,trail:-
 " highlight SpecialKey ctermbg=red guibg=red
 
 " Vimux mappings
@@ -203,4 +205,3 @@ let g:snipMate.scope_aliases['ruby'] = 'ruby,motion'
 
 " jslint script
 nmap <Leader>j :!jslint %<CR>
-

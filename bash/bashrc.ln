@@ -7,10 +7,14 @@ export EDITOR=vim
 # Tell ls to be colourful
 export CLICOLOR=1
 export LSCOLORS=Exfxcxdxbxegedabagacad
-export TERM="xterm-256color"
+#export TERM="xterm-256color"
+export TERM="screen-256color"
 
 # Tell grep to highlight matches
 export GREP_OPTIONS='--color=auto'
+
+#source ps1
+source ~/.git-prompt.sh
 
 if [ "$(uname)" == "Darwin" ]; then
   if [ -f $(brew --prefix)/etc/bash_completion ]; then
@@ -37,7 +41,8 @@ done
 # prompt
 #   * __git_ps1 is from bash git completion, so must come last. ish.
 #export PS1='\u@\h:\w$(__git_ps1 " (%s)")\n> '
-export PS1='\[\e[0;33m\]\u\[\e[0m\]@\[\e[0;32m\]\h\[\e[0m\]:\[\e[0;34m\]\w\[\e[0m\]\$ '
+#export PS1='\[\e[0;33m\]\u\[\e[0m\]@\[\e[0;32m\]\h\[\e[0m\]:\[\e[0;34m\]\w\[\e[0m\]\$ '
+export PS1='[\[\e[0;33m\]\u\[\e[0m\]@\[\e[0;32m\]\h\[\e[0m\]:\[\e[0;34m\]\w\[\e[0m\]] $(__git_ps1 "(\[\e[0;31m\]%s\[\e[0m\])")\n\$ '
 PS1="$PS1"'$([ -n "$TMUX" ] && tmux setenv TMUXPWD_$(tmux display -p "#D" | tr -d %) "$PWD")'
 
 # my binaries
@@ -48,5 +53,27 @@ if [ -f ~/.bashrc.local ]; then
   source ~/.bashrc.local
 fi
 
+# rvm setup
+if [ -f ~/.rvmrc ]; then
+  RVM_PATH=$(grep rvm_path ~/.rvmrc | cut -f2 -d= | tr -d \"\')
+fi
+RVM_PATH=${RVM_PATH:-$HOME/.rvm}
+if [ -s "$RVM_PATH/scripts/rvm" ]; then
+  source "$RVM_PATH/scripts/rvm"
+  PATH=$PATH:$RVM_PATH/bin # Add RVM to PATH for scripting
+fi
 
-export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
+# rbenv setup
+if which rbenv &> /dev/null; then eval "$(rbenv init -)"; fi
+
+PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
+PATH=$PATH:$HOME/Library/Android/sdk/platform-tools:$HOME/Library/Android/sdk/tools
+PATH="$HOME/.node/bin:$PATH"
+
+#source "`brew --prefix grc`/etc/grc.bashrc"
+#. ~/.nvm/nvm.sh
+source /Users/brettfowle/perl5/perlbrew/etc/bashrc
+
+export GOHOME=/usr/local/go
+export PATH=$PATH:$GOHOME/bin
+export GOPATH=$HOME/go
