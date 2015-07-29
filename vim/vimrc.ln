@@ -2,7 +2,7 @@ source ~/.vim/vam-init.vim
 
 let vam_addons = [
   \ 'github:altercation/vim-colors-solarized',
-  \ 'ctrlp',
+  \ 'github:ctrlpvim/ctrlp.vim',
   \ 'tComment',
   \ 'fugitive',
   \ 'surround',

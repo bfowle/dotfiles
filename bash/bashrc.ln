@@ -70,10 +70,9 @@ PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
 PATH=$PATH:$HOME/Library/Android/sdk/platform-tools:$HOME/Library/Android/sdk/tools
 PATH="$HOME/.node/bin:$PATH"
 
-#source "`brew --prefix grc`/etc/grc.bashrc"
-#. ~/.nvm/nvm.sh
-source /Users/brettfowle/perl5/perlbrew/etc/bashrc
-
 export GOHOME=/usr/local/go
 export PATH=$PATH:$GOHOME/bin
 export GOPATH=$HOME/go
+
+# added by travis gem
+[ -f /home/brett/.travis/travis.sh ] && source /home/brett/.travis/travis.sh
