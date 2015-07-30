@@ -76,3 +76,7 @@ export GOPATH=$HOME/go
 
 # added by travis gem
 [ -f /home/brett/.travis/travis.sh ] && source /home/brett/.travis/travis.sh
+
+if [ -d "$HOME/.local/bin" ]; then
+  PATH="$HOME/.local/bin:$PATH"
+fi
