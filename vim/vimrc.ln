@@ -1,6 +1,7 @@
 call plug#begin('~/.vim/plugged')
 
 Plug 'altercation/vim-colors-solarized'
+Plug 'powerline/powerline'
 Plug 'ctrlpvim/ctrlp.vim'
 Plug 'kchmck/vim-coffee-script'
 Plug 'pbrisbin/vim-mkdir'
@@ -211,3 +212,13 @@ nmap <Leader>j :!jslint %<CR>
 nnoremap <Leader>t :call RunCurrentSpecFile()<CR>
 nnoremap <Leader>s :call RunNearestSpec()<CR>
 nnoremap <Leader>l :call RunLastSpec()<CR>
+
+" powerline settings
+set rtp+=$HOME/.local/lib/python2.7/site-packages/powerline/bindings/vim/
+
+" Always show statusline
+set laststatus=2
+
+" Use 256 colours (Use this setting only if your terminal supports 256 colours)
+set t_Co=256
+let g:Powerline_symbols = "fancy"
