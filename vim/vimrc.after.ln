@@ -17,7 +17,7 @@ let g:ctrlp_regexp = 1
 
 " ctrlp ignores
 let g:ctrlp_custom_ignore = {
-  \ 'dir': 'build$\|\.git$\|\.storyboardc$\|\.svn$\|target$\|\.unpack$\|vendor$',
+  \ 'dir': 'build$\|\.git$\|\.storyboardc$\|\.svn$\|node_modules$\|coverage$\|target$\|\.unpack$\|vendor$',
   \ 'file': 'ctags$\|\.ccignore$\|\.DS_Store$\|\.gitignore$\|\.repl_history$',
   \ 'link': '',
   \ }

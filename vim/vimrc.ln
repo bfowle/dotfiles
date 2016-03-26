@@ -1,10 +1,11 @@
 call plug#begin('~/.vim/plugged')
 
 Plug 'altercation/vim-colors-solarized'
-Plug 'powerline/powerline'
 Plug 'ctrlpvim/ctrlp.vim'
 Plug 'kchmck/vim-coffee-script'
+Plug 'morhetz/gruvbox'
 Plug 'pbrisbin/vim-mkdir'
+Plug 'powerline/powerline'
 Plug 'scrooloose/syntastic'
 Plug 'SirVer/ultisnips' | Plug 'honza/vim-snippets'
 Plug 'thoughtbot/vim-rspec'
@@ -19,7 +20,8 @@ Plug 'tpope/vim-surround'
 Plug 'tpope/vim-unimpaired'
 Plug 'vim-ruby/vim-ruby'
 Plug 'vim-scripts/tComment'
-Plug 'morhetz/gruvbox'
+Plug 'leafgarland/typescript-vim'
+Plug 'OmniSharp/omnisharp-vim'
 
 call plug#end()
 

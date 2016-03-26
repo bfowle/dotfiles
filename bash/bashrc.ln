@@ -74,9 +74,10 @@ export GOHOME=/usr/local/go
 export PATH=$PATH:$GOHOME/bin
 export GOPATH=$HOME/go
 
-# added by travis gem
-[ -f /home/brett/.travis/travis.sh ] && source /home/brett/.travis/travis.sh
-
 if [ -d "$HOME/.local/bin" ]; then
   PATH="$HOME/.local/bin:$PATH"
+fi
+
+if [ -d "$HOME/Library/Python/2.7/bin" ]; then
+  PATH="$HOME/Library/Python/2.7/bin:$PATH"
 fi
