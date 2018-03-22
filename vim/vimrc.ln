@@ -1,27 +1,18 @@
 call plug#begin('~/.vim/plugged')
 
-Plug 'altercation/vim-colors-solarized'
 Plug 'ctrlpvim/ctrlp.vim'
-Plug 'kchmck/vim-coffee-script'
 Plug 'morhetz/gruvbox'
 Plug 'pbrisbin/vim-mkdir'
 Plug 'powerline/powerline'
 Plug 'scrooloose/syntastic'
-Plug 'SirVer/ultisnips' | Plug 'honza/vim-snippets'
-Plug 'thoughtbot/vim-rspec'
-Plug 'tpope/vim-bundler'
 Plug 'tpope/vim-endwise'
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-ragtag'
-Plug 'tpope/vim-rails'
 Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-sensible'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-unimpaired'
-Plug 'vim-ruby/vim-ruby'
-Plug 'vim-scripts/tComment'
 Plug 'leafgarland/typescript-vim'
-Plug 'OmniSharp/omnisharp-vim'
 
 call plug#end()
 
@@ -36,7 +27,6 @@ set directory=~/.vim/tmp
 
 " solarized setup
 syntax enable
-let g:solarized_termcolors=256
 set background=dark
 colorscheme gruvbox
 
@@ -91,19 +81,15 @@ let g:ctrlp_working_path_mode = 0
 
 " ctrlp ignores
 let g:ctrlp_custom_ignore = {
-  \ 'dir': 'build$\|\.git$\|\.storyboardc$\|\.svn$\|target$\|\.unpack$\|vendor$\|tmp/cache$\|ib\.xcodeproj$',
-  \ 'file': 'ctags$\|\.ccignore$\|\.DS_Store$\|\.gitignore$\|\.repl_history$',
+  \ 'dir': 'build$\|\.git$\|\.svn$\|target$\|\.unpack$\|vendor$\|tmp/cache$',
+  \ 'file': 'ctags$\|\.DS_Store$\|\.gitignore$',
   \ 'link': '',
   \ }
 
 " open multiple files in separate tabs
 let g:ctrlp_open_multiple_files = 't'
 
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Thank you, Gary
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-" Clear the search buffer when hitting return
+" clear the search buffer when hitting return
 function! MapCR()
   nnoremap <cr> :nohlsearch<cr>
 endfunction
@@ -178,9 +164,6 @@ if executable('ag')
 
   " ag is fast enough that CtrlP doesn't need to cache
   let g:ctrlp_use_caching = 0
-else
-  " it's better than grep
-  set grepprg=ack
 endif
 
 " whitespace cleanup - largely "yanked" from:

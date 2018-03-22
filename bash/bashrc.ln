@@ -3,7 +3,6 @@
 
 export EDITOR=vim
 
-
 # Tell ls to be colourful
 export CLICOLOR=1
 export LSCOLORS=Exfxcxdxbxegedabagacad
@@ -16,21 +15,15 @@ export GREP_OPTIONS='--color=auto'
 #source ps1
 source ~/.git-prompt.sh
 
-if [ "$(uname)" == "Darwin" ]; then
-  if [ -f $(brew --prefix)/etc/bash_completion ]; then
-    source $(brew --prefix)/etc/bash_completion
+if [ -f /etc/bash_completion ]; then
+  source /etc/bash_completion
+else
+  if [ ! -f ~/.git-completion.bash ]; then
+    curl https://raw.github.com/git/git/master/contrib/completion/git-completion.bash -o ~/.git-completion.bash
+    curl https://raw.github.com/git/git/master/contrib/completion/git-prompt.sh -o ~/.git-prompt.sh
   fi
-else # linux
-  if [ -f /etc/bash_completion ]; then
-    source /etc/bash_completion
-  else
-    if [ ! -f ~/.git-completion.bash ]; then
-      curl https://raw.github.com/git/git/master/contrib/completion/git-completion.bash -o ~/.git-completion.bash
-      curl https://raw.github.com/git/git/master/contrib/completion/git-prompt.sh -o ~/.git-prompt.sh
-    fi
-    source ~/.git-completion.bash
-    source ~/.git-prompt.sh
-  fi
+  source ~/.git-completion.bash
+  source ~/.git-prompt.sh
 fi
 
 # source it all
@@ -53,31 +46,10 @@ if [ -f ~/.bashrc.local ]; then
   source ~/.bashrc.local
 fi
 
-# rvm setup
-if [ -f ~/.rvmrc ]; then
-  RVM_PATH=$(grep rvm_path ~/.rvmrc | cut -f2 -d= | tr -d \"\')
+if [ -f ~/.local/lib/python2.7/site-packages/powerline/bindings/bash/powerline.sh ]; then
+  source ~/.local/lib/python2.7/site-packages/powerline/bindings/bash/powerline.sh
 fi
-RVM_PATH=${RVM_PATH:-$HOME/.rvm}
-if [ -s "$RVM_PATH/scripts/rvm" ]; then
-  source "$RVM_PATH/scripts/rvm"
-  PATH=$PATH:$RVM_PATH/bin # Add RVM to PATH for scripting
-fi
-
-# rbenv setup
-if which rbenv &> /dev/null; then eval "$(rbenv init -)"; fi
-
-PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
-PATH=$PATH:$HOME/Library/Android/sdk/platform-tools:$HOME/Library/Android/sdk/tools
-PATH="$HOME/.node/bin:$PATH"
-
-export GOHOME=/usr/local/go
-export PATH=$PATH:$GOHOME/bin
-export GOPATH=$HOME/go
 
 if [ -d "$HOME/.local/bin" ]; then
   PATH="$HOME/.local/bin:$PATH"
-fi
-
-if [ -d "$HOME/Library/Python/2.7/bin" ]; then
-  PATH="$HOME/Library/Python/2.7/bin:$PATH"
 fi

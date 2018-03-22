@@ -59,8 +59,6 @@ set -s escape-time 0
 set -g status-left '#[fg=colour240]#H'
 set -g status-right '#[fg=colour4]#(uptime | cut -d "," -f 2-)'
 
-if-shell "test -f ~/Library/Python/2.7/lib/python/site-packages/powerline/bindings/tmux/powerline.conf" "source ~/Library/Python/2.7/lib/python/site-packages/powerline/bindings/tmux/powerline.conf"
-
 set-option -g status on
 set-option -g status-interval 2
 set-option -g status-utf8 on

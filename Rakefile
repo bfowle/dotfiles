@@ -1,4 +1,3 @@
-
 desc 'install dot files'
 task :install do
   Dir.glob('**/*.ln').each do |file|

@@ -1,4 +1,3 @@
-let g:solarized_termcolors=256
 color gruvbox
 set background=dark
 
@@ -17,8 +16,8 @@ let g:ctrlp_regexp = 1
 
 " ctrlp ignores
 let g:ctrlp_custom_ignore = {
-  \ 'dir': 'build$\|\.git$\|\.storyboardc$\|\.svn$\|node_modules$\|coverage$\|target$\|\.unpack$\|vendor$',
-  \ 'file': 'ctags$\|\.ccignore$\|\.DS_Store$\|\.gitignore$\|\.repl_history$',
+  \ 'dir': 'build$\|\.git$\|\.svn$\|node_modules$\|coverage$\|target$\|\.unpack$\|vendor$',
+  \ 'file': 'ctags$\|\.DS_Store$\|\.gitignore$',
   \ 'link': '',
   \ }
 
