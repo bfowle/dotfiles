@@ -15,11 +15,7 @@ let g:ctrlp_working_path_mode = 0
 let g:ctrlp_regexp = 1
 
 " ctrlp ignores
-let g:ctrlp_custom_ignore = {
-  \ 'dir': 'build$\|\.git$\|\.svn$\|node_modules$\|coverage$\|target$\|\.unpack$\|vendor$',
-  \ 'file': 'ctags$\|\.DS_Store$\|\.gitignore$',
-  \ 'link': '',
-  \ }
+let g:ctrlp_custom_ignore = '\v[\/](node_modules|build|target|dist)|(\.(swp|ico|git|svn))$'
 
 " open multiple files in separate tabs
 let g:ctrlp_open_multiple_files = 't'

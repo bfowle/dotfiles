@@ -53,3 +53,28 @@ fi
 if [ -d "$HOME/.local/bin" ]; then
   PATH="$HOME/.local/bin:$PATH"
 fi
+
+export GO111MODULE=on
+export GOPATH=$HOME/go
+export GOBIN=$GOPATH/bin
+PATH=$PATH:$GOBIN
+PATH=$PATH:$HOME/openshift/openshift-origin-client-tools
+
+alias grep="/bin/grep $GREP_OPTIONS"
+unset GREP_OPTIONS
+
+source <(kubectl completion bash)
+# Install Ruby Gems to ~/gems
+export GEM_HOME=$HOME/gems
+export PATH=$HOME/gems/bin:$PATH
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/usr/lib/google-cloud-sdk/path.bash.inc' ]; then source '/usr/lib/google-cloud-sdk/path.bash.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/usr/lib/google-cloud-sdk/completion.bash.inc' ]; then source '/usr/lib/google-cloud-sdk/completion.bash.inc'; fi
+
+if [ -f /usr/bin/screenfetch ]; then screenfetch; fi
+
+# wakatime
+source ~/repos/bash-wakatime/bash-wakatime.sh

@@ -63,3 +63,5 @@ set-option -g status-interval 2
 set-option -g status-justify "centre"
 set-option -g status-left-length 60
 set-option -g status-right-length 90
+
+run-shell ~/.dotfiles/tmux/plugins/tmux-resurrect/resurrect.tmux
