@@ -12,6 +12,9 @@ export TERM="screen-256color"
 # Tell grep to highlight matches
 export GREP_OPTIONS='--color=auto'
 
+export HISTSIZE=10000
+export HISTFILESIZE=10000
+
 #source ps1
 source ~/.git-prompt.sh
 
@@ -57,8 +60,7 @@ fi
 export GO111MODULE=on
 export GOPATH=$HOME/go
 export GOBIN=$GOPATH/bin
-PATH=$PATH:$GOBIN
-PATH=$PATH:$HOME/openshift/openshift-origin-client-tools
+PATH=$GOBIN:$PATH
 
 alias grep="/bin/grep $GREP_OPTIONS"
 unset GREP_OPTIONS
@@ -77,4 +79,8 @@ if [ -f '/usr/lib/google-cloud-sdk/completion.bash.inc' ]; then source '/usr/lib
 if [ -f /usr/bin/screenfetch ]; then screenfetch; fi
 
 # wakatime
-source ~/repos/bash-wakatime/bash-wakatime.sh
+#source ~/repos/bash-wakatime/bash-wakatime.sh
+
+export PATH=$PATH:$HOME/lambda2-1.9.5-Linux-x86_64/bin
+export PATH=$PATH:$HOME/ncbi-blast-2.8.1+/bin
+export BLASTDB=$HOME/ncbi-blast-data

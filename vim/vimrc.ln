@@ -4,7 +4,6 @@ Plug 'ctrlpvim/ctrlp.vim'
 Plug 'morhetz/gruvbox'
 Plug 'pbrisbin/vim-mkdir'
 Plug 'powerline/powerline'
-Plug 'scrooloose/syntastic'
 Plug 'tpope/vim-endwise'
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-ragtag'
@@ -13,11 +12,12 @@ Plug 'tpope/vim-sensible'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-unimpaired'
 Plug 'fatih/vim-go'
+Plug 'vim-syntastic/syntastic'
 Plug 'pangloss/vim-javascript'
 Plug 'mxw/vim-jsx'
 Plug 'leafgarland/typescript-vim'
 Plug 'chase/vim-ansible-yaml'
-Plug 'wakatime/vim-wakatime'
+"Plug 'wakatime/vim-wakatime'
 
 call plug#end()
 
@@ -69,7 +69,7 @@ set ignorecase
 set smartcase
 
 " yank to system clipboard
-set clipboard=unnamed
+set clipboard=unnamedplus
 
 " override javascript commenting
 let g:tcomment_types = {
@@ -89,6 +89,10 @@ let g:ctrlp_custom_ignore = '\v[\/](node_modules|build|target|dist)|(\.(swp|ico|
 
 " open multiple files in separate tabs
 let g:ctrlp_open_multiple_files = 't'
+
+let g:syntastic_cpp_checkers = ['gcc']
+let g:syntastic_cpp_compiler = 'gcc'
+let g:syntastic_cpp_compiler_options = '-std=c++17'
 
 " clear the search buffer when hitting return
 function! MapCR()

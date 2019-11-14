@@ -1,6 +1,8 @@
 set -g default-terminal "screen-256color"
 set-window-option -g mode-keys vi
 
+set-option -g history-limit 10000
+
 # remap prefix to Control + a
 set -g prefix C-a
 unbind C-b
@@ -16,7 +18,12 @@ bind C-A select-pane -t :.+
 set-option -g default-command 'if [ "$(uname)" == "Darwin" ]; then reattach-to-user-namespace -l bash; else bash -l; fi'
 
 ## copy to system clipboard
-bind-key -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel 'reattach-to-user-namespace pbcopy'
+#bind-key -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel 'reattach-to-user-namespace pbcopy'
+
+# For binding 'y' to copy and exiting selection mode
+bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'xclip -sel clip -i'
+# For binding 'Enter' to copy and not leave selection mode
+bind-key -T copy-mode-vi Enter send-keys -X copy-pipe 'xclip -sel clip -i' '\;'  send -X clear-selection
 
 # toggle pane "maximizing"
 unbind z
