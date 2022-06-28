@@ -1,4 +1,4 @@
-set -g default-terminal "screen-256color"
+set -g default-terminal "xterm-color"
 set-window-option -g mode-keys vi
 
 set-option -g history-limit 10000
@@ -56,8 +56,8 @@ set-option -g status-fg '#0080ff'
 set-option -g status-bg default
 
 # pane border and colors
-set-option -g pane-active-border-fg colour4
-set-option -g pane-border-fg colour240
+#set-option -g pane-active-border-fg colour4
+#set-option -g pane-border-fg colour240
 
 # minimize escape delay
 set -s escape-time 0

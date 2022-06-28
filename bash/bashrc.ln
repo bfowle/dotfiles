@@ -65,7 +65,7 @@ PATH=$GOBIN:$PATH
 alias grep="/bin/grep $GREP_OPTIONS"
 unset GREP_OPTIONS
 
-source <(kubectl completion bash)
+#source <(kubectl completion bash)
 # Install Ruby Gems to ~/gems
 export GEM_HOME=$HOME/gems
 export PATH=$HOME/gems/bin:$PATH
@@ -84,3 +84,10 @@ if [ -f /usr/bin/screenfetch ]; then screenfetch; fi
 export PATH=$PATH:$HOME/lambda2-1.9.5-Linux-x86_64/bin
 export PATH=$PATH:$HOME/ncbi-blast-2.8.1+/bin
 export BLASTDB=$HOME/ncbi-blast-data
+
+export GPG_TTY=$(tty)
+export CUBE_PERSONAL_ACCESS_TOKEN_PUBLIC=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
+export CUBE_PERSONAL_ACCESS_TOKEN_GHAE=3b03c7a3cf319ace8bd7dea9d07ea0625e443834
+export CUBE_PERSONAL_ACCESS_TOKEN=$CUBE_PERSONAL_ACCESS_TOKEN_PUBLIC
+#export CUBE_PERSONAL_ACCESS_TOKEN=$CUBE_PERSONAL_ACCESS_TOKEN_GHAE
+export CUBE_TFE_PERSONAL_ACCESS_TOKEN=ecShO4scgzAShA.atlasv1.FmLiv3rs4ctWt2iWrLXkap5HP5DTDMSRzzgEqrWza3RGuAtDSSfykhpfdnLMj0zF2pQ

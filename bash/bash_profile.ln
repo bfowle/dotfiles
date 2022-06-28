@@ -10,3 +10,4 @@ ssh-add -L &> /dev/null
 if [ $? -eq 1 ]; then
   ssh-add
 fi
+export GPG_TTY=$(tty)
