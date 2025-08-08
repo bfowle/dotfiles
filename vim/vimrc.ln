@@ -17,6 +17,7 @@ Plug 'pangloss/vim-javascript'
 Plug 'mxw/vim-jsx'
 Plug 'leafgarland/typescript-vim'
 Plug 'chase/vim-ansible-yaml'
+"Plug 'augmentcode/augment.vim'
 "Plug 'wakatime/vim-wakatime'
 
 call plug#end()
