@@ -50,3 +50,6 @@ map <C-H> :tabprevious<CR>
 
 " make the current split the only one and turn diff off
 nmap <Leader>do :only! \| :diffoff!<CR>
+
+" testing...
+"let g:augment_workspace_folders = ['/home/brett/repos/statrigor']

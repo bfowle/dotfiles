@@ -70,12 +70,6 @@ unset GREP_OPTIONS
 export GEM_HOME=$HOME/gems
 export PATH=$HOME/gems/bin:$PATH
 
-# The next line updates PATH for the Google Cloud SDK.
-if [ -f '/usr/lib/google-cloud-sdk/path.bash.inc' ]; then source '/usr/lib/google-cloud-sdk/path.bash.inc'; fi
-
-# The next line enables shell command completion for gcloud.
-if [ -f '/usr/lib/google-cloud-sdk/completion.bash.inc' ]; then source '/usr/lib/google-cloud-sdk/completion.bash.inc'; fi
-
 if [ -f /usr/bin/screenfetch ]; then screenfetch; fi
 
 # wakatime
@@ -86,8 +80,13 @@ export PATH=$PATH:$HOME/ncbi-blast-2.8.1+/bin
 export BLASTDB=$HOME/ncbi-blast-data
 
 export GPG_TTY=$(tty)
-export CUBE_PERSONAL_ACCESS_TOKEN_PUBLIC=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
-export CUBE_PERSONAL_ACCESS_TOKEN_GHAE=3b03c7a3cf319ace8bd7dea9d07ea0625e443834
-export CUBE_PERSONAL_ACCESS_TOKEN=$CUBE_PERSONAL_ACCESS_TOKEN_PUBLIC
-#export CUBE_PERSONAL_ACCESS_TOKEN=$CUBE_PERSONAL_ACCESS_TOKEN_GHAE
-export CUBE_TFE_PERSONAL_ACCESS_TOKEN=ecShO4scgzAShA.atlasv1.FmLiv3rs4ctWt2iWrLXkap5HP5DTDMSRzzgEqrWza3RGuAtDSSfykhpfdnLMj0zF2pQ
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/tmp/google-cloud-sdk/path.bash.inc' ]; then . '/tmp/google-cloud-sdk/path.bash.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/tmp/google-cloud-sdk/completion.bash.inc' ]; then . '/tmp/google-cloud-sdk/completion.bash.inc'; fi
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
