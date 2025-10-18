@@ -1,0 +1,33 @@
+# ripgrep configuration
+# This file is symlinked to ~/.ripgreprc
+
+# Don't search hidden files and directories by default
+--hidden
+
+# Don't search in .git directories
+--glob=!.git/*
+
+# Don't search node_modules
+--glob=!node_modules/*
+
+# Don't search build artifacts
+--glob=!target/*
+--glob=!build/*
+--glob=!dist/*
+
+# Smart case search (case insensitive unless pattern has uppercase)
+--smart-case
+
+# Show line numbers
+--line-number
+
+# Sort by file path
+--sort=path
+
+# Use gruvbox colors
+--colors=line:fg:yellow
+--colors=line:style:bold
+--colors=path:fg:green
+--colors=path:style:bold
+--colors=match:fg:red
+--colors=match:style:bold

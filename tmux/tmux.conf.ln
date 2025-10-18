@@ -1,35 +1,73 @@
-set -g default-terminal "xterm-color"
+# ============================================
+# Modern Tmux Configuration
+# ============================================
+
+# True color support
+# Use screen-256color for better compatibility
+set -g default-terminal "screen-256color"
+set -ga terminal-overrides ",xterm-256color:RGB"
+set -ga terminal-overrides ",screen-256color:RGB"
+set -ga terminal-overrides ",tmux-256color:RGB"
+
+# Terminal features for newer tmux versions
+set -as terminal-features ",xterm-256color:RGB"
+set -as terminal-features ",screen-256color:RGB"
+set -as terminal-features ",tmux-256color:RGB"
+
+# Vi mode
 set-window-option -g mode-keys vi
 
+# Scrollback buffer
 set-option -g history-limit 10000
 
-# remap prefix to Control + a
+# Mouse support
+set -g mouse on
+
+# Start windows and panes at 1, not 0
+set -g base-index 1
+setw -g pane-base-index 1
+
+# Renumber windows when one is closed
+set -g renumber-windows on
+
+# Minimize escape delay (important for neovim)
+set -s escape-time 0
+
+# Enable focus events (required for neovim autoread)
+set-option -g focus-events on
+
+# ============================================
+# Prefix Key
+# ============================================
+
+# Remap prefix to Control + a
 set -g prefix C-a
 unbind C-b
-bind C-s send-prefix
+bind C-a send-prefix
 
-# force a reload of the config file
-bind-key r source-file ~/.tmux.conf
+# ============================================
+# Key Bindings
+# ============================================
 
-# quick pane cycling
+# Reload config file
+bind-key r source-file ~/.tmux.conf \; display-message "Config reloaded!"
+
+# Split panes using | and - (and keep current path)
+bind | split-window -h -c "#{pane_current_path}"
+bind - split-window -v -c "#{pane_current_path}"
+unbind '"'
+unbind %
+
+# Quick pane cycling
 bind C-A select-pane -t :.+
 
-# copy and paste is good
-set-option -g default-command 'if [ "$(uname)" == "Darwin" ]; then reattach-to-user-namespace -l bash; else bash -l; fi'
+# Pane selection (vim-style)
+bind h select-pane -L
+bind j select-pane -D
+bind k select-pane -U
+bind l select-pane -R
 
-## copy to system clipboard
-#bind-key -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel 'reattach-to-user-namespace pbcopy'
-
-# For binding 'y' to copy and exiting selection mode
-bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'xclip -sel clip -i'
-# For binding 'Enter' to copy and not leave selection mode
-bind-key -T copy-mode-vi Enter send-keys -X copy-pipe 'xclip -sel clip -i' '\;'  send -X clear-selection
-
-# toggle pane "maximizing"
-unbind z
-bind = resize-pane -Z
-
-# pane selection
+# Pane selection by number
 bind 0 select-pane -t 0
 bind 1 select-pane -t 1
 bind 2 select-pane -t 2
@@ -41,29 +79,39 @@ bind 7 select-pane -t 7
 bind 8 select-pane -t 8
 bind 9 select-pane -t 9
 
-# pane resizing
-bind -r C-h resize-pane -L
-bind -r C-j resize-pane -D
-bind -r C-k resize-pane -U
-bind -r C-l resize-pane -R
+# Pane resizing
+bind -r C-h resize-pane -L 5
+bind -r C-j resize-pane -D 5
+bind -r C-k resize-pane -U 5
+bind -r C-l resize-pane -R 5
 
-# window navigation
+# Window navigation
 bind-key -r C-h select-window -t :-
 bind-key -r C-l select-window -t :+
 
-# set status bar
-set-option -g status-fg '#0080ff'
-set-option -g status-bg default
+# Toggle pane maximizing
+unbind z
+bind = resize-pane -Z
 
-# pane border and colors
-#set-option -g pane-active-border-fg colour4
-#set-option -g pane-border-fg colour240
+# ============================================
+# Copy Mode (Vi-style)
+# ============================================
 
-# minimize escape delay
-set -s escape-time 0
+# Enter copy mode with prefix + [
+bind [ copy-mode
 
-set -g status-left '#[fg=colour240]#H'
-set -g status-right '#[fg=colour4]#(uptime | cut -d "," -f 2-)'
+# Vi-style copy/paste
+bind-key -T copy-mode-vi v send-keys -X begin-selection
+bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'xclip -sel clip -i'
+bind-key -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel 'xclip -sel clip -i'
+bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel 'xclip -sel clip -i'
+
+# Paste with prefix + ]
+bind ] run "xclip -o -sel clip | tmux load-buffer - ; tmux paste-buffer"
+
+# ============================================
+# Status Bar Configuration
+# ============================================
 
 set-option -g status on
 set-option -g status-interval 2
@@ -71,4 +119,39 @@ set-option -g status-justify "centre"
 set-option -g status-left-length 60
 set-option -g status-right-length 90
 
-run-shell ~/.dotfiles/tmux/plugins/tmux-resurrect/resurrect.tmux
+# Status bar will be styled by gruvbox theme plugin
+
+# ============================================
+# TPM - Tmux Plugin Manager
+# ============================================
+
+# List of plugins
+set -g @plugin 'tmux-plugins/tpm'
+set -g @plugin 'tmux-plugins/tmux-sensible'
+set -g @plugin 'tmux-plugins/tmux-yank'
+set -g @plugin 'tmux-plugins/tmux-resurrect'
+set -g @plugin 'tmux-plugins/tmux-continuum'
+set -g @plugin 'egel/tmux-gruvbox'
+
+# Gruvbox theme
+set -g @tmux-gruvbox 'dark' # or 'light'
+
+# Resurrect settings
+set -g @resurrect-strategy-nvim 'session'
+set -g @resurrect-capture-pane-contents 'on'
+
+# Continuum settings (auto-save sessions)
+set -g @continuum-restore 'on'
+set -g @continuum-save-interval '15' # minutes
+
+# ============================================
+# Initialize TPM (keep at bottom)
+# ============================================
+
+# Note: TPM is installed automatically by the dotfiles install.sh script
+# To manually install TPM and plugins, run:
+#   git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+#   ~/.tmux/plugins/tpm/bin/install_plugins
+
+# Initialize TMUX plugin manager (keep this line at the very bottom of tmux.conf)
+run '~/.tmux/plugins/tpm/tpm'
