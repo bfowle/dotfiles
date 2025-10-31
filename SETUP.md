@@ -25,7 +25,7 @@ tmux  # Press Ctrl+a then I to install plugins
 ### LSP Servers (Language Intelligence)
 - **rust-analyzer** - Rust
 - **tsserver** - TypeScript/JavaScript
-- **volar** - Vue.js
+- **vue_ls** - Vue.js
 - **gopls** - Go
 - **clangd** - C/C++
 - **html, cssls** - HTML/CSS
@@ -248,7 +248,7 @@ Neovim will automatically:
 ### Web Development (Vue/React/HTML/CSS)
 
 Neovim will automatically:
-- Start volar (Vue), html, cssls
+- Start vue_ls (Vue), html, cssls
 - Tailwind CSS IntelliSense
 - Emmet completion (`Ctrl+e`)
 - Auto-close HTML tags

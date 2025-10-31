@@ -8,7 +8,6 @@ This is a personal dotfiles repository providing a complete, automated developme
 
 **Modern Stack**:
 - **Neovim** with LazyVim + full language support (Rust, JS/TS, Go, C/C++, HTML/CSS, Vue)
-- **Claude Code integration** via opencode.nvim
 - **fnm** (Fast Node Manager) replaces nvm
 - **Modern CLI tools** (ripgrep, fd, bat, eza, fzf, delta, zoxide)
 - **Git tools** (gh, lazygit)
@@ -123,9 +122,9 @@ The dotfiles are organized by tool/category:
   - `lua/config/`: Core configuration (options, keymaps, autocmds)
   - `lua/plugins/`: Plugin specifications
     - `gruvbox.lua`: Theme configuration
-    - `opencode.lua`: Claude Code integration
     - `markdown.lua`: Markdown rendering and preview
     - `core.lua`: Essential editor plugins
+    - `languages/cpp.lua`: C/C++ development configuration
   - **Installation**: Must be manually symlinked: `ln -s ~/.dotfiles/nvim ~/.config/nvim`
   - See `nvim/README.md` for detailed documentation
 
@@ -189,11 +188,6 @@ nvim  # First launch will install plugins
 
 **Key Features**:
 - **LazyVim**: Modern plugin framework with lazy loading
-- **opencode.nvim**: Claude Code integration
-  - `<leader>oa` - Ask Claude about current context
-  - `<leader>os` - Select prompt template
-  - `<leader>ot` - Toggle Claude Code panel
-  - `<leader>oc` - Custom prompt
 - **Markdown**: Inline rendering (render-markdown.nvim) + browser preview (markdown-preview.nvim)
   - `<leader>mp` - Toggle browser preview
 - **Fuzzy finder**: Telescope (replaces ctrlp)
@@ -307,6 +301,22 @@ Backup configs before changes, restore if needed.
 - Creates manifest with git commit reference
 - Can restore to any previous backup
 
+## Reloading Configuration
+
+**Quick reload** (after making changes):
+```bash
+# Reload Neovim config (checks symlinks, shows status)
+~/.dotfiles/scripts/reload-nvim.sh
+
+# Then restart nvim or run inside nvim:
+:Lazy sync
+```
+
+The reload script ensures:
+- Symlink from `~/.config/nvim` to `~/.dotfiles/nvim` exists
+- Config points to correct location
+- Warns if nvim is running
+
 ## Testing Changes
 
 After modifying dotfiles:
@@ -322,8 +332,10 @@ After modifying dotfiles:
 
 **Neovim changes**:
 1. Edit plugin configs in `nvim/lua/plugins/`
-2. Reload neovim or run `:Lazy reload <plugin>`
-3. Check `:checkhealth` for issues
+2. Run reload script: `~/.dotfiles/scripts/reload-nvim.sh`
+3. Restart nvim (or run `:Lazy sync` inside nvim)
+4. Check `:checkhealth` for issues
+5. Verify leader key: `:echo mapleader` (should show `,`)
 
 **Tmux changes**:
 1. Edit `tmux/tmux.conf.ln`
@@ -375,3 +387,132 @@ tmux                            # Auto-installs TPM + plugins
 - The repo expects `~/.git-prompt.sh` and `~/.git-completion.bash` for git integration
 - Neovim config requires manual symlinking (not managed by Rakefile)
 - Backup before major changes using the backup-and-restore skill
+- **Leader key**: Set in TWO places in `nvim/init.lua` (both required due to LazyVim override):
+  - Lines 3-4: Before `lazy.setup()` (required by lazy.nvim for proper keymap registration)
+  - Lines 61-62: After `lazy.setup()` (actually works - LazyVim overrides to space during plugin load)
+  - **Expected behavior**: May show lazy.nvim warning about setting leader - this is harmless, we set it correctly
+
+## Troubleshooting
+
+### Neovim: No Syntax Highlighting
+
+If you open a file and see no syntax highlighting (all text is white/monochrome):
+
+**Check Treesitter status**:
+```vim
+:checkhealth nvim-treesitter
+```
+
+**Install missing parsers manually**:
+```vim
+:TSInstall cpp c rust javascript typescript go lua bash
+```
+
+**Force reinstall all parsers**:
+```vim
+:TSInstall! all
+```
+
+**Verify parser is installed**:
+```vim
+:TSInstallInfo
+```
+
+**Common fixes**:
+1. Restart Neovim after running `:Lazy sync`
+2. Check that `nvim/lua/plugins/treesitter.lua` uses `require("nvim-treesitter.configs").setup()`
+3. Ensure file type is detected: `:set filetype?` (should show `cpp`, `rust`, etc.)
+4. Check theme supports Treesitter: `:colorscheme gruvbox`
+
+### Neovim: C++ Language Features Not Working
+
+If clangd isn't working or header/impl switching doesn't work:
+
+**Check LSP status**:
+```vim
+:LspInfo
+```
+
+**Check if clangd is installed**:
+```bash
+which clangd
+```
+
+**Install via Mason**:
+```vim
+:Mason
+# Press 'i' on clangd to install
+```
+
+**Check C++ plugins loaded**:
+```vim
+:Lazy
+# Search for 'neovim-cmake' and 'nvim-dap'
+```
+
+**Verify languages subdirectory is imported**:
+- File: `nvim/init.lua`
+- Should have: `{ import = "plugins.languages" }`
+
+### Neovim: Icons/Fonts Showing as Boxes
+
+This happens when Nerd Fonts aren't installed **on Windows** (not WSL).
+
+**Fix for Windows Terminal**:
+1. Download Nerd Font: https://www.nerdfonts.com/font-downloads
+2. Install `.ttf` files on Windows (right-click → Install)
+3. Windows Terminal Settings → Profile → Appearance → Font Face
+4. Select the Nerd Font you installed
+5. Restart Windows Terminal
+
+**Quick workaround** (disable icons):
+```bash
+# Remove icons from eza
+alias ls='eza'
+unalias ls='eza --icons'
+```
+
+### Tmux: True Color Not Working
+
+**Check terminal**:
+```bash
+echo $TERM
+# Should be: screen-256color (inside tmux) or xterm-256color (outside)
+```
+
+**Inside tmux**:
+```vim
+:checkhealth
+# Should show "true color enabled"
+```
+
+**Fix**:
+1. Ensure `tmux.conf` has: `set -g default-terminal "screen-256color"`
+2. Ensure `bashrc` sets: `export TERM="xterm-256color"` (outside tmux only)
+3. Reload: `tmux source-file ~/.tmux.conf`
+
+### Neovim: Warning About Setting Leader Before Lazy
+
+**Warning message**:
+```
+You need to set `vim.g.mapleader` **BEFORE** loading lazy
+```
+
+**Why this appears**:
+- We set leader to comma BEFORE lazy.setup() (init.lua:3)
+- LazyVim overrides it to space DURING lazy.setup()
+- We set it back to comma AFTER lazy.setup() (init.lua:61)
+- Lazy.nvim sees the "after" setting and warns about it
+
+**This is expected and harmless!**
+- The warning is cosmetic - leader key works correctly
+- We must set it twice due to LazyVim's override behavior
+- The keymaps are registered correctly because we set it before lazy.setup()
+
+**Verify it works**:
+```vim
+:echo mapleader
+# Should show: ,
+
+# Press comma and wait - should see which-key menu
+```

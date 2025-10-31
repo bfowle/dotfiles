@@ -1,9 +1,13 @@
 -- Options
 local opt = vim.opt
 
--- Leader key
-vim.g.mapleader = ","
-vim.g.maplocalleader = "\\"
+-- Enable filetype detection (critical for syntax highlighting)
+vim.cmd("filetype plugin indent on")
+
+-- Note: Leader key is set in init.lua in TWO places:
+--   1. Before lazy.setup() (line 3-4) - reduces warnings
+--   2. After lazy.setup() (line 59-60) - actually works (LazyVim overrides during load)
+-- Do NOT set it here - options.lua loads during lazy.setup(), won't stick
 
 -- General
 opt.number = true -- show line numbers

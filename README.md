@@ -32,7 +32,7 @@ That's it! Everything is configured.
 ### Language Support (LSP + Formatting)
 - Rust (rust-analyzer, rustfmt)
 - TypeScript/JavaScript (tsserver, prettier)
-- Vue.js (volar)
+- Vue.js (vue_ls)
 - Go (gopls, goimports)
 - C/C++ (clangd, clang-format)
 - HTML/CSS (html, cssls, prettier)
@@ -104,7 +104,7 @@ nvim
 ```bash
 cd my-nextjs-project
 nvim
-# tsserver, volar, tailwindcss LSP all active
+# tsserver, vue_ls, tailwindcss LSP all active
 # Prettier formatting on save
 ```
 

@@ -5,16 +5,17 @@ return {
     version = false,
     build = ":TSUpdate",
     event = { "BufReadPost", "BufNewFile" },
+    cmd = { "TSUpdateSync", "TSUpdate", "TSInstall" },
     dependencies = {
       "nvim-treesitter/nvim-treesitter-textobjects",
     },
-    cmd = { "TSUpdateSync", "TSUpdate", "TSInstall" },
     keys = {
       { "<c-space>", desc = "Increment selection" },
       { "<bs>", desc = "Decrement selection", mode = "x" },
     },
-    opts = {
-      ensure_installed = {
+    opts = function(_, opts)
+      -- Extend LazyVim's ensure_installed with our custom parsers
+      vim.list_extend(opts.ensure_installed or {}, {
         -- Core languages
         "lua",
         "vim",
@@ -63,71 +64,62 @@ return {
         "dockerfile",
         "make",
         "cmake",
-      },
+      })
 
-      -- Install parsers synchronously (only applied to `ensure_installed`)
-      sync_install = false,
+      -- Merge our custom configuration with LazyVim's defaults
+      opts.auto_install = true
+      opts.highlight = opts.highlight or {}
+      opts.highlight.enable = true
+      opts.highlight.additional_vim_regex_highlighting = false
 
-      -- Automatically install missing parsers when entering buffer
-      auto_install = true,
+      opts.indent = opts.indent or {}
+      opts.indent.enable = true
+      opts.indent.disable = { "python", "yaml" }
 
-      highlight = {
+      opts.incremental_selection = opts.incremental_selection or {}
+      opts.incremental_selection.enable = true
+      opts.incremental_selection.keymaps = {
+        init_selection = "<c-space>",
+        node_incremental = "<c-space>",
+        scope_incremental = false,
+        node_decremental = "<bs>",
+      }
+
+      opts.textobjects = opts.textobjects or {}
+      opts.textobjects.select = {
         enable = true,
-        additional_vim_regex_highlighting = false,
-      },
-
-      indent = {
-        enable = true,
-        disable = { "python", "yaml" }, -- These can be problematic
-      },
-
-      incremental_selection = {
-        enable = true,
+        lookahead = true,
         keymaps = {
-          init_selection = "<c-space>",
-          node_incremental = "<c-space>",
-          scope_incremental = false,
-          node_decremental = "<bs>",
+          ["af"] = "@function.outer",
+          ["if"] = "@function.inner",
+          ["ac"] = "@class.outer",
+          ["ic"] = "@class.inner",
+          ["aa"] = "@parameter.outer",
+          ["ia"] = "@parameter.inner",
         },
-      },
+      }
+      opts.textobjects.move = {
+        enable = true,
+        set_jumps = true,
+        goto_next_start = {
+          ["]f"] = "@function.outer",
+          ["]c"] = "@class.outer",
+        },
+        goto_next_end = {
+          ["]F"] = "@function.outer",
+          ["]C"] = "@class.outer",
+        },
+        goto_previous_start = {
+          ["[f"] = "@function.outer",
+          ["[c"] = "@class.outer",
+        },
+        goto_previous_end = {
+          ["[F"] = "@function.outer",
+          ["[C"] = "@class.outer",
+        },
+      }
 
-      textobjects = {
-        select = {
-          enable = true,
-          lookahead = true,
-          keymaps = {
-            ["af"] = "@function.outer",
-            ["if"] = "@function.inner",
-            ["ac"] = "@class.outer",
-            ["ic"] = "@class.inner",
-            ["aa"] = "@parameter.outer",
-            ["ia"] = "@parameter.inner",
-          },
-        },
-        move = {
-          enable = true,
-          set_jumps = true,
-          goto_next_start = {
-            ["]f"] = "@function.outer",
-            ["]c"] = "@class.outer",
-          },
-          goto_next_end = {
-            ["]F"] = "@function.outer",
-            ["]C"] = "@class.outer",
-          },
-          goto_previous_start = {
-            ["[f"] = "@function.outer",
-            ["[c"] = "@class.outer",
-          },
-          goto_previous_end = {
-            ["[F"] = "@function.outer",
-            ["[C"] = "@class.outer",
-          },
-        },
-      },
-    },
-    config = function(_, opts)
-      require("nvim-treesitter").setup(opts)
+      return opts
     end,
   },
 }

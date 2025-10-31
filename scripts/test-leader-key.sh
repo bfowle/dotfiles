@@ -1,0 +1,72 @@
+#!/bin/bash
+
+# Test which leader key setting is actually needed
+# This helps us remove unnecessary code
+
+echo "🔍 Testing Leader Key Settings"
+echo "================================"
+echo ""
+echo "We're testing which of these 3 settings is actually needed:"
+echo "  1. init.lua:3      (before lazy.setup)"
+echo "  2. init.lua:58     (after lazy.setup)"
+echo "  3. autocmds.lua:42 (VimEnter autocmd)"
+echo ""
+echo "Let's test them one at a time..."
+echo ""
+
+# Function to test leader key
+test_leader() {
+    local test_name="$1"
+    echo "🧪 Test: $test_name"
+    echo "   Open nvim and run:"
+    echo "   :echo mapleader"
+    echo ""
+    echo "   Should show: ,"
+    echo ""
+    echo "   Then test: press , and wait for which-key"
+    echo ""
+    read -p "   Press Enter when ready to continue..."
+    echo ""
+}
+
+echo "STEP 1: Test with ONLY autocmds.lua:42 (VimEnter)"
+echo "─────────────────────────────────────────────────"
+echo ""
+echo "Action needed:"
+echo "  1. Comment out init.lua:3-4 (add -- before each line)"
+echo "  2. Comment out init.lua:58-59"
+echo "  3. Keep autocmds.lua:42-44 uncommented"
+echo "  4. Keep options.lua:9-10 commented (if not already)"
+echo ""
+test_leader "VimEnter autocmd only"
+
+echo "STEP 2: Test with ONLY init.lua:58 (after lazy.setup)"
+echo "──────────────────────────────────────────────────────"
+echo ""
+echo "Action needed:"
+echo "  1. Keep init.lua:3-4 commented"
+echo "  2. Uncomment init.lua:58-59"
+echo "  3. Comment out autocmds.lua:42-44"
+echo ""
+test_leader "After lazy.setup only"
+
+echo "STEP 3: Test with ONLY init.lua:3 (before lazy.setup)"
+echo "──────────────────────────────────────────────────────"
+echo ""
+echo "Action needed:"
+echo "  1. Uncomment init.lua:3-4"
+echo "  2. Comment out init.lua:58-59"
+echo "  3. Keep autocmds.lua:42-44 commented"
+echo ""
+test_leader "Before lazy.setup only"
+
+echo ""
+echo "✅ Testing complete!"
+echo ""
+echo "Based on your tests, you should keep the setting in the"
+echo "EARLIEST location that worked, and remove the others."
+echo ""
+echo "Most likely winner: init.lua:58 (after lazy.setup)"
+echo "  - This runs after LazyVim sets leader to space"
+echo "  - But before most keymaps are registered"
+echo ""

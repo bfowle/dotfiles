@@ -18,7 +18,7 @@ autocmd("BufReadPost", {
 autocmd("TextYankPost", {
   group = augroup("HighlightYank", { clear = true }),
   callback = function()
-    vim.highlight.on_yank()
+    vim.hl.on_yank()
   end,
 })
 
@@ -48,5 +48,22 @@ autocmd("BufEnter", {
   group = augroup("DisableRelativeNumberBuf", { clear = true }),
   callback = function()
     vim.opt.relativenumber = false
+  end,
+})
+
+-- Fix lazy.nvim float buffer errors on window resize
+autocmd("VimResized", {
+  group = augroup("FixLazyResize", { clear = true }),
+  callback = function()
+    -- Save current tab before resizing
+    local current_tab = vim.fn.tabpagenr()
+    -- Safely resize all windows, catching any invalid buffer errors
+    pcall(function()
+      vim.cmd("tabdo wincmd =")
+    end)
+    -- Restore original tab (tabdo leaves you on the last tab)
+    pcall(function()
+      vim.cmd("tabn " .. current_tab)
+    end)
   end,
 })

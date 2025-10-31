@@ -1,3 +1,9 @@
+-- Set leader keys FIRST (required by lazy.nvim to register keymaps correctly)
+-- We also override LazyVim's options.lua (see nvim/lua/lazyvim/config/options.lua)
+-- to prevent LazyVim from changing leader to space during initialization
+vim.g.mapleader = ","
+vim.g.maplocalleader = "\\"
+
 -- bootstrap lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
@@ -26,8 +32,10 @@ require("lazy").setup({
     -- import LazyVim extras
     { import = "lazyvim.plugins.extras.coding.nvim-cmp" }, -- Use nvim-cmp instead of blink.cmp
     { import = "lazyvim.plugins.extras.lang.markdown" },
+    -- NOTE: clangd extra auto-loads when opening C++ files, we override it in cpp.lua
     -- import custom plugins
     { import = "plugins" },
+    { import = "plugins.languages" }, -- Language-specific configurations
   },
   defaults = {
     lazy = false,
@@ -46,6 +54,10 @@ require("lazy").setup({
     },
   },
 })
+
+-- Note: We no longer need to set leader AFTER lazy.setup() because we override
+-- LazyVim's options.lua (see nvim/lua/lazyvim/config/options.lua) which prevents
+-- LazyVim from changing leader to space during initialization
 
 -- load keymaps and autocmds
 require("config.keymaps")

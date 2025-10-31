@@ -1,26 +1,16 @@
 -- LSP Configuration for all languages
+-- Migrated to LazyVim's opts pattern (no more deprecated lspconfig framework)
 return {
   {
     "neovim/nvim-lspconfig",
-    dependencies = {
-      "mason-org/mason.nvim",
-      "mason-org/mason-lspconfig.nvim",
-      "hrsh7th/cmp-nvim-lsp",
-    },
-    config = function()
-      -- Setup mason first
-      require("mason").setup({
-        ui = {
-          border = "rounded",
-          icons = {
-            package_installed = "✓",
-            package_pending = "➜",
-            package_uninstalled = "✗",
-          },
-        },
-      })
+    opts = function(_, opts)
+      -- Ensure servers table exists
+      if not opts.servers then
+        opts.servers = {}
+      end
 
       -- LSP server configurations
+      -- Each server config is added to opts.servers (LazyVim's pattern)
       local servers = {
         -- Rust
         rust_analyzer = {
@@ -77,7 +67,7 @@ return {
         },
 
         -- Vue.js
-        volar = {
+        vue_ls = {
           filetypes = { "vue", "typescript", "javascript" },
         },
 
@@ -104,17 +94,7 @@ return {
           },
         },
 
-        -- C/C++
-        clangd = {
-          cmd = {
-            "clangd",
-            "--background-index",
-            "--clang-tidy",
-            "--header-insertion=iwyu",
-            "--completion-style=detailed",
-            "--function-arg-placeholders",
-          },
-        },
+        -- C/C++ - configured entirely in languages/cpp.lua
 
         -- Lua
         lua_ls = {
@@ -140,57 +120,86 @@ return {
         jsonls = {},
       }
 
-      -- Setup mason-lspconfig
+      -- Merge our server configs into opts.servers (LazyVim's pattern)
+      for server_name, config in pairs(servers) do
+        opts.servers[server_name] = vim.tbl_deep_extend("force", opts.servers[server_name] or {}, config)
+      end
+
+      return opts
+    end,
+  },
+
+  -- Mason LSP configuration
+  {
+    "mason-org/mason-lspconfig.nvim",
+    opts = {
       -- Only auto-install servers that are known to work with Mason
-      -- Some servers (like volar) are installed globally via npm in install-lsp-servers.sh
-      local mason_servers = {
+      -- Some servers (like vue_ls) are installed globally via npm in install-lsp-servers.sh
+      -- Note: clangd is managed by languages/cpp.lua
+      ensure_installed = {
         "rust_analyzer",
         "ts_ls",
         "html",
         "cssls",
         "tailwindcss",
         "gopls",
-        "clangd",
         "lua_ls",
         "bashls",
         "jsonls",
-      }
+      },
+      automatic_installation = false,
+    },
+  },
 
-      require("mason-lspconfig").setup({
-        ensure_installed = mason_servers,
-        automatic_installation = false,
-      })
+  -- Mason UI
+  {
+    "mason-org/mason.nvim",
+    opts = {
+      ui = {
+        border = "rounded",
+        icons = {
+          package_installed = "✓",
+          package_pending = "➜",
+          package_uninstalled = "✗",
+        },
+      },
+    },
+    cmd = "Mason",
+    build = ":MasonUpdate",
+    keys = {
+      { "<leader>cm", "<cmd>Mason<cr>", desc = "Mason" },
+    },
+  },
 
-      -- Setup capabilities for autocompletion
-      local capabilities = vim.lsp.protocol.make_client_capabilities()
-      capabilities = require("cmp_nvim_lsp").default_capabilities(capabilities)
+  -- LSP Keymaps (applies to ALL LSP servers)
+  -- Uses LazyVim's on_attach system instead of manual per-server setup
+  {
+    "neovim/nvim-lspconfig",
+    opts = function()
+      -- Set up keymaps for all LSP servers
+      LazyVim.lsp.on_attach(function(client, bufnr)
+        local opts = { buffer = bufnr, silent = true }
 
-      -- Setup each server
-      local lspconfig = require("lspconfig")
-      for server_name, config in pairs(servers) do
-        config.capabilities = capabilities
+        -- LSP keymaps (same as before, but now using LazyVim's system)
+        vim.keymap.set("n", "gd", vim.lsp.buf.definition, vim.tbl_extend("force", opts, { desc = "Go to definition" }))
+        vim.keymap.set("n", "gD", vim.lsp.buf.declaration, vim.tbl_extend("force", opts, { desc = "Go to declaration" }))
+        vim.keymap.set("n", "gr", vim.lsp.buf.references, vim.tbl_extend("force", opts, { desc = "Go to references" }))
+        vim.keymap.set("n", "gi", vim.lsp.buf.implementation, vim.tbl_extend("force", opts, { desc = "Go to implementation" }))
+        vim.keymap.set("n", "K", vim.lsp.buf.hover, vim.tbl_extend("force", opts, { desc = "Hover documentation" }))
+        vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, vim.tbl_extend("force", opts, { desc = "Rename symbol" }))
+        vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, vim.tbl_extend("force", opts, { desc = "Code action" }))
+        vim.keymap.set("n", "<leader>f", function() vim.lsp.buf.format({ async = true }) end, vim.tbl_extend("force", opts, { desc = "Format buffer" }))
+        vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, vim.tbl_extend("force", opts, { desc = "Previous diagnostic" }))
+        vim.keymap.set("n", "]d", vim.diagnostic.goto_next, vim.tbl_extend("force", opts, { desc = "Next diagnostic" }))
+      end)
+    end,
+  },
 
-        -- Custom on_attach for keymaps
-        config.on_attach = function(client, bufnr)
-          local opts = { buffer = bufnr, silent = true }
-
-          -- LSP keymaps
-          vim.keymap.set("n", "gd", vim.lsp.buf.definition, vim.tbl_extend("force", opts, { desc = "Go to definition" }))
-          vim.keymap.set("n", "gD", vim.lsp.buf.declaration, vim.tbl_extend("force", opts, { desc = "Go to declaration" }))
-          vim.keymap.set("n", "gr", vim.lsp.buf.references, vim.tbl_extend("force", opts, { desc = "Go to references" }))
-          vim.keymap.set("n", "gi", vim.lsp.buf.implementation, vim.tbl_extend("force", opts, { desc = "Go to implementation" }))
-          vim.keymap.set("n", "K", vim.lsp.buf.hover, vim.tbl_extend("force", opts, { desc = "Hover documentation" }))
-          vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, vim.tbl_extend("force", opts, { desc = "Rename symbol" }))
-          vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, vim.tbl_extend("force", opts, { desc = "Code action" }))
-          vim.keymap.set("n", "<leader>f", function() vim.lsp.buf.format({ async = true }) end, vim.tbl_extend("force", opts, { desc = "Format buffer" }))
-          vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, vim.tbl_extend("force", opts, { desc = "Previous diagnostic" }))
-          vim.keymap.set("n", "]d", vim.diagnostic.goto_next, vim.tbl_extend("force", opts, { desc = "Next diagnostic" }))
-        end
-
-        lspconfig[server_name].setup(config)
-      end
-
-      -- Diagnostic configuration
+  -- Diagnostic configuration
+  {
+    "neovim/nvim-lspconfig",
+    opts = function()
+      -- Configure diagnostics display
       vim.diagnostic.config({
         virtual_text = {
           prefix = "●",
@@ -218,15 +227,5 @@ return {
         vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
       end
     end,
-  },
-
-  -- Mason UI
-  {
-    "mason-org/mason.nvim",
-    cmd = "Mason",
-    build = ":MasonUpdate",
-    keys = {
-      { "<leader>cm", "<cmd>Mason<cr>", desc = "Mason" },
-    },
   },
 }

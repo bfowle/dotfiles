@@ -1,22 +1,21 @@
 -- Core plugins and customizations
 return {
-  -- Better escape
+  -- Better escape (updated API after rewrite)
   {
     "max397574/better-escape.nvim",
     event = "InsertEnter",
-    config = function()
-      local ok, better_escape = pcall(require, "better_escape")
-      if ok then
-        better_escape.setup({
-          mapping = { "jk", "jj" }, -- Maps jk and jj to <Esc> in insert mode
-          timeout = 200, -- Time in ms to wait for the second key
-          clear_empty_lines = false,
-          keys = "<Esc>",
-        })
-      else
-        vim.notify("Failed to load better-escape: " .. tostring(better_escape), vim.log.levels.ERROR)
-      end
-    end,
+    opts = {
+      timeout = 200, -- Time in ms to wait for the second key
+      default_mappings = true, -- Use default jk mapping
+      mappings = {
+        i = {
+          j = {
+            k = "<Esc>", -- jk in insert mode
+            j = "<Esc>", -- jj in insert mode
+          },
+        },
+      },
+    },
   },
 
   -- Auto pairs

@@ -10,7 +10,7 @@ return {
       bigfile = { enabled = true },
       notifier = { enabled = true },
       quickfile = { enabled = true },
-      statuscolumn = { enabled = false }, -- Disabled for now
+      statuscolumn = { enabled = false },
       words = { enabled = true },
 
       -- UI enhancements
@@ -26,6 +26,11 @@ return {
 
       -- File explorer
       explorer = { enabled = true },
+
+      -- Disable visual features that can cause layout issues
+      dim = { enabled = false },        -- Disable dimming unfocused windows
+      indent = { enabled = false },     -- Disable indent guides (can cause visual artifacts)
+      scope = { enabled = false },      -- Disable scope highlighting
     },
     config = function(_, opts)
       local snacks = require("snacks")
