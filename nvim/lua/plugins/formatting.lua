@@ -53,21 +53,16 @@ return {
         bash = { "shfmt" },
       },
 
-      -- Format on save
-      format_on_save = function(bufnr)
-        -- Disable with a global or buffer-local variable
-        if vim.g.disable_autoformat or vim.b[bufnr].disable_autoformat then
-          return
-        end
-        return {
-          timeout_ms = 500,
-          lsp_fallback = true,
-        }
-      end,
+      -- NOTE: Don't set format_on_save here - LazyVim handles it via autocmd
+      -- Use LazyVim.format.enabled() to toggle instead
 
       formatters = {
         shfmt = {
           prepend_args = { "-i", "2", "-ci" },
+        },
+        -- Ensure clang-format uses .clang-format file from project/home
+        clang_format = {
+          args = { "--style=file", "-assume-filename", "$FILENAME" },  -- Override default args to force reading .clang-format
         },
       },
     },

@@ -67,3 +67,24 @@ autocmd("VimResized", {
     end)
   end,
 })
+
+-- Protect visual mode from display corruption (C++ files)
+-- Lighter redraw only when exiting visual mode to avoid lag
+autocmd("ModeChanged", {
+  group = augroup("VisualModeProtection", { clear = true }),
+  pattern = { "[vV\x16]*:*" },  -- Only when EXITING visual mode (not entering)
+  callback = function()
+    local mode = vim.fn.mode()
+    local ft = vim.bo.filetype
+
+    -- Only run for C/C++ files to avoid lag in other languages
+    if ft ~= "cpp" and ft ~= "c" then
+      return
+    end
+
+    -- Exiting visual mode - use lighter redraw
+    if mode == "n" or mode == "i" then
+      vim.cmd("redraw")  -- Use 'redraw' instead of 'redraw!' (less aggressive)
+    end
+  end,
+})

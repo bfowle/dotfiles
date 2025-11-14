@@ -3,6 +3,11 @@
 
 export EDITOR=vim
 
+# Ensure proper UTF-8 locale for tmux and other tools
+export LC_ALL=C.UTF-8
+export LANG=C.UTF-8
+export LC_CTYPE=C.UTF-8
+
 # Tell ls to be colourful
 export CLICOLOR=1
 export LSCOLORS=Exfxcxdxbxegedabagacad
@@ -112,8 +117,14 @@ fi
 
 if command -v bat &> /dev/null; then
   alias cat='bat --paging=never'
+  # Use bat for man pages - col strips backspace formatting (^H characters)
   export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+  export MANROFFOPT="-c"  # Fix formatting issues with groff
 fi
+
+# Fallback: ensure less handles colors correctly
+export LESS="-R --mouse"
+export LESSCHARSET="utf-8"
 
 if command -v zoxide &> /dev/null; then
   eval "$(zoxide init bash)"

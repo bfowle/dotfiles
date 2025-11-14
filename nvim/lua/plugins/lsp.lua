@@ -176,8 +176,11 @@ return {
   {
     "neovim/nvim-lspconfig",
     opts = function()
-      -- Set up keymaps for all LSP servers
-      LazyVim.lsp.on_attach(function(client, bufnr)
+      -- Set up keymaps for all LSP servers using LspAttach autocmd
+      vim.api.nvim_create_autocmd("LspAttach", {
+        callback = function(args)
+          local client = vim.lsp.get_client_by_id(args.data.client_id)
+          local bufnr = args.buf
         local opts = { buffer = bufnr, silent = true }
 
         -- LSP keymaps (same as before, but now using LazyVim's system)
@@ -191,7 +194,8 @@ return {
         vim.keymap.set("n", "<leader>f", function() vim.lsp.buf.format({ async = true }) end, vim.tbl_extend("force", opts, { desc = "Format buffer" }))
         vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, vim.tbl_extend("force", opts, { desc = "Previous diagnostic" }))
         vim.keymap.set("n", "]d", vim.diagnostic.goto_next, vim.tbl_extend("force", opts, { desc = "Next diagnostic" }))
-      end)
+        end,
+      })
     end,
   },
 

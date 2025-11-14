@@ -37,3 +37,8 @@ fi
 if command -v gh &> /dev/null; then
   eval "$(gh completion -s bash)"
 fi
+
+# Claude Code - no wrapper needed (resize command was causing scrollback issues)
+# if command -v claude &> /dev/null; then
+#   alias claude='resize >/dev/null 2>&1; command claude'
+# fi

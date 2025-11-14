@@ -53,7 +53,12 @@ opt.splitright = true
 -- Misc
 opt.formatoptions:remove("o") -- don't add comment prefix when opening new lines
 opt.mouse = "a" -- enable mouse support
-opt.updatetime = 250
+opt.updatetime = 300 -- reduce LSP update frequency to prevent lag (default: 250)
 opt.timeoutlen = 300
 opt.undofile = true
 opt.undolevels = 10000
+
+-- Performance optimizations
+opt.synmaxcol = 300 -- only highlight first 300 columns (prevents lag on long lines)
+opt.redrawtime = 1500 -- longer redraw time for complex syntax (default: 2000)
+-- Note: lazyredraw disabled - it prevents visual feedback during repeated operations (indenting, etc.)

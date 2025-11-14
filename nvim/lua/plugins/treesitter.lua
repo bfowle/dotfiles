@@ -71,13 +71,23 @@ return {
       opts.highlight = opts.highlight or {}
       opts.highlight.enable = true
       opts.highlight.additional_vim_regex_highlighting = false
+      -- Disable highlighting for large files to prevent lag
+      opts.highlight.disable = function(lang, buf)
+        local max_filesize = 100 * 1024 -- 100 KB
+        local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
+        if ok and stats and stats.size > max_filesize then
+          return true
+        end
+      end
 
       opts.indent = opts.indent or {}
       opts.indent.enable = true
       opts.indent.disable = { "python", "yaml" }
 
+      -- Disable incremental selection for C/C++ to prevent visual mode corruption
       opts.incremental_selection = opts.incremental_selection or {}
       opts.incremental_selection.enable = true
+      opts.incremental_selection.disable = { "c", "cpp" }  -- Prevent visual mode bugs in C/C++
       opts.incremental_selection.keymaps = {
         init_selection = "<c-space>",
         node_incremental = "<c-space>",

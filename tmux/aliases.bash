@@ -1,5 +1,5 @@
 alias tml="tmux list-sessions"
-alias tma="tmux attach-session"
+alias tma="tmux attach-session -d"  # -d detaches other clients to prevent size conflicts
 alias tmc="clear && tmux clear-history"
 alias tmk="tmux kill-session"
 alias tm="tmux new-session \; \

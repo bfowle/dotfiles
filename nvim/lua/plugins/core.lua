@@ -1,5 +1,12 @@
 -- Core plugins and customizations
 return {
+  -- Disable bufferline (LazyVim default that shows buffers as tabs)
+  -- Use traditional vim buffer management with :ls, :b, etc.
+  {
+    "akinsho/bufferline.nvim",
+    enabled = false,
+  },
+
   -- Better escape (updated API after rewrite)
   {
     "max397574/better-escape.nvim",

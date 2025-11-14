@@ -11,7 +11,14 @@ keymap.set("n", "<C-j>", "<C-w>j", opts)
 keymap.set("n", "<C-k>", "<C-w>k", opts)
 keymap.set("n", "<C-l>", "<C-w>l", opts)
 
--- Tab navigation (vim-style with brackets)
+-- Buffer navigation (bufferline disabled - use traditional buffer commands)
+-- Use :ls to list buffers, :b <name> to switch
+keymap.set("n", "]b", ":bnext<CR>", { desc = "Next buffer" })
+keymap.set("n", "[b", ":bprevious<CR>", { desc = "Previous buffer" })
+keymap.set("n", "<leader>bd", ":bdelete<CR>", { desc = "Delete buffer" })
+keymap.set("n", "<leader>bb", ":Telescope buffers<CR>", { desc = "List buffers" })
+
+-- Tab navigation (vim tab pages - separate workspaces)
 -- Note: ]t/[t are NOT used by todo-comments anymore (we override it to use ]T/[T)
 keymap.set("n", "]t", ":tabnext<CR>", { desc = "Next tab" })
 keymap.set("n", "[t", ":tabprevious<CR>", { desc = "Previous tab" })
@@ -38,8 +45,13 @@ keymap.set("n", "<leader>w", ":retab | :%s/\\s\\+$//e<CR>", { desc = "Clean whit
 keymap.set("n", "<leader>do", ":only! | :diffoff!<CR>", { desc = "Close other splits & diff off" })
 
 -- Better indenting (stay in visual mode)
-keymap.set("v", "<", "<gv", opts)
-keymap.set("v", ">", ">gv", opts)
+-- Set after VimEnter to ensure these override LazyVim defaults
+vim.api.nvim_create_autocmd("VimEnter", {
+  callback = function()
+    vim.keymap.set("v", "<", "<gv", { noremap = true, silent = true, desc = "Indent left and reselect" })
+    vim.keymap.set("v", ">", ">gv", { noremap = true, silent = true, desc = "Indent right and reselect" })
+  end,
+})
 
 -- Move text up and down
 keymap.set("v", "J", ":m '>+1<CR>gv=gv", opts)

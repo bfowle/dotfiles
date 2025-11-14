@@ -11,7 +11,7 @@ return {
         config = function() end,
         opts = {
           inlay_hints = {
-            inline = false,
+            enabled = false,  -- Completely disable to prevent visual mode corruption
           },
         },
       },
@@ -35,18 +35,31 @@ return {
         -- NOTE: This replaces LazyVim's cmd to fix --function-arg-placeholders issue
         cmd = {
           "clangd",
-          "--background-index",
+          "--background-index=false",  -- Disable background indexing (causes lag)
           "--path-mappings=/mnt/c/=C:/,/mnt/d/=D:/",  -- WSL: Map client paths (/mnt/*) to server paths (C:/)
-          "--clang-tidy",
-          "--header-insertion=iwyu",
-          "--completion-style=detailed",
-          "--function-arg-placeholders=true",  -- Fixed: LazyVim uses flag without value
-          "--fallback-style=llvm",
-          "--all-scopes-completion",
-          "--header-insertion-decorators",
+          "--header-insertion=never",  -- Disable auto header insertion (causes lag)
+          "--completion-style=bundled",  -- Faster completion style
+          "--function-arg-placeholders=false",  -- Disable placeholders (causes visual corruption)
+          "--fallback-style=file",  -- Use .clang-format file
+          "--pch-storage=memory",  -- Store precompiled headers in memory
+          "--limit-results=20",  -- Limit completion results for speed
         },
+        -- Disable clangd features that cause lag
+        on_attach = function(client, bufnr)
+          -- Disable formatting - use conform.nvim instead
+          client.server_capabilities.documentFormattingProvider = false
+          client.server_capabilities.documentRangeFormattingProvider = false
+
+          -- Disable features that cause lag during editing
+          client.server_capabilities.documentHighlightProvider = false
+          client.server_capabilities.codeLensProvider = false
+          client.server_capabilities.documentSymbolProvider = false
+          client.server_capabilities.workspaceSymbolProvider = false
+        end,
         capabilities = {
           offsetEncoding = { "utf-16" },
+          -- Disable semantic tokens to prevent visual mode corruption
+          semanticTokensProvider = vim.NIL,
           -- Disable features that fail when compile_commands.json path mapping doesn't work
           textDocument = {
             documentHighlight = { dynamicRegistration = false },
@@ -72,11 +85,12 @@ return {
         return false -- Don't do default LSP setup (clangd_extensions handles it)
       end
 
-      -- Use LazyVim's on_attach system to add our custom keymaps
-      -- This runs after LazyVim sets its keymaps, allowing us to override them
-      LazyVim.lsp.on_attach(function(client, buffer)
-        if client.name == "clangd" then
-          local map_opts = { buffer = buffer, silent = true }
+      -- Use LspAttach autocmd to add our custom clangd keymaps
+      vim.api.nvim_create_autocmd("LspAttach", {
+        callback = function(args)
+          local client = vim.lsp.get_client_by_id(args.data.client_id)
+          if client.name == "clangd" then
+            local map_opts = { buffer = args.buf, silent = true }
 
           -- Switch between header and implementation
           vim.keymap.set("n", "<leader>h", "<cmd>ClangdSwitchSourceHeader<cr>",
@@ -107,8 +121,9 @@ return {
           -- Type hierarchy
           vim.keymap.set("n", "<leader>ty", "<cmd>ClangdTypeHierarchy<cr>",
             vim.tbl_extend("force", map_opts, { desc = "Type Hierarchy" }))
-        end
-      end)
+          end
+        end,
+      })
 
       return opts
     end,
