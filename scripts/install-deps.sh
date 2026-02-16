@@ -20,6 +20,7 @@ case "$PKG_MANAGER" in
             unzip
             tar
             gzip
+            tmux
             xclip          # clipboard integration
             software-properties-common
             apt-transport-https
@@ -41,6 +42,7 @@ case "$PKG_MANAGER" in
             wget
             git
             unzip
+            tmux
             python3
         )
         brew install "${PACKAGES[@]}" 2>&1 || true

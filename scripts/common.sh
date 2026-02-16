@@ -86,14 +86,25 @@ ensure_brew() {
     if [[ "$OS" != "macos" ]]; then
         return 0
     fi
+
+    # Check known install locations and add to PATH if needed
+    if ! command -v brew &> /dev/null; then
+        if [[ -f /opt/homebrew/bin/brew ]]; then
+            eval "$(/opt/homebrew/bin/brew shellenv)"
+        elif [[ -f /usr/local/bin/brew ]]; then
+            eval "$(/usr/local/bin/brew shellenv)"
+        fi
+    fi
+
     if command -v brew &> /dev/null; then
         return 0
     fi
 
+    # Still not found -- install it
     log_info "Homebrew not found. Installing Homebrew..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-    # Add brew to PATH for Apple Silicon (/opt/homebrew) and Intel (/usr/local)
+    # Add to PATH after install
     if [[ -f /opt/homebrew/bin/brew ]]; then
         eval "$(/opt/homebrew/bin/brew shellenv)"
     elif [[ -f /usr/local/bin/brew ]]; then

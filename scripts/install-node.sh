@@ -10,11 +10,19 @@ if command -v fnm &> /dev/null && [[ "$FORCE" != true ]]; then
     log_info "fnm already installed ($(fnm --version))"
 else
     log_info "Installing fnm..."
-    curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell
+    # Force install to a consistent location across platforms
+    FNM_DIR="$HOME/.local/share/fnm"
+    curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell --install-dir "$FNM_DIR"
 
     # Source fnm for current session
-    export FNM_DIR="$HOME/.local/share/fnm"
+    export FNM_DIR
     export PATH="$FNM_DIR:$PATH"
+
+    if ! command -v fnm &> /dev/null; then
+        log_error "fnm installation failed"
+        exit 1
+    fi
+
     eval "$(fnm env --use-on-cd)"
 fi
 

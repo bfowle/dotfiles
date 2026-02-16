@@ -4,6 +4,13 @@
 export EDITOR=vim
 export GIT_EDITOR=vim  # Use vim for git commits
 
+# Homebrew (macOS) - must be early so brew-installed tools are on PATH
+if [ -f /opt/homebrew/bin/brew ]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [ -f /usr/local/bin/brew ]; then
+  eval "$(/usr/local/bin/brew shellenv)"
+fi
+
 # Ensure proper UTF-8 locale for tmux and other tools
 export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
@@ -23,18 +30,34 @@ export GREP_OPTIONS='--color=auto'
 export HISTSIZE=10000
 export HISTFILESIZE=10000
 
-#source ps1
-source ~/.git-prompt.sh
-
+# Git prompt and completion
+# Try system bash-completion first, then Homebrew, then manual download
 if [ -f /etc/bash_completion ]; then
   source /etc/bash_completion
+elif [ -f "$(brew --prefix 2>/dev/null)/etc/profile.d/bash_completion.sh" ]; then
+  source "$(brew --prefix)/etc/profile.d/bash_completion.sh"
 else
+  # Download git-completion and git-prompt if missing
   if [ ! -f ~/.git-completion.bash ]; then
-    curl https://raw.github.com/git/git/master/contrib/completion/git-completion.bash -o ~/.git-completion.bash
-    curl https://raw.github.com/git/git/master/contrib/completion/git-prompt.sh -o ~/.git-prompt.sh
+    curl -sS https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash -o ~/.git-completion.bash 2>/dev/null || true
   fi
-  source ~/.git-completion.bash
-  source ~/.git-prompt.sh
+  if [ ! -f ~/.git-prompt.sh ]; then
+    curl -sS https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh -o ~/.git-prompt.sh 2>/dev/null || true
+  fi
+  [ -f ~/.git-completion.bash ] && source ~/.git-completion.bash
+  [ -f ~/.git-prompt.sh ] && source ~/.git-prompt.sh
+fi
+
+# Ensure git-prompt is loaded (may already be loaded by bash-completion above)
+if ! type -t __git_ps1 &>/dev/null; then
+  # Try Homebrew git's bundled prompt
+  _brew_prefix="$(brew --prefix 2>/dev/null)"
+  if [ -n "$_brew_prefix" ] && [ -f "$_brew_prefix/opt/git/etc/bash_completion.d/git-prompt.sh" ]; then
+    source "$_brew_prefix/opt/git/etc/bash_completion.d/git-prompt.sh"
+  elif [ -f ~/.git-prompt.sh ]; then
+    source ~/.git-prompt.sh
+  fi
+  unset _brew_prefix
 fi
 
 # source it all
@@ -102,9 +125,13 @@ if [ -f '/tmp/google-cloud-sdk/path.bash.inc' ]; then . '/tmp/google-cloud-sdk/p
 if [ -f '/tmp/google-cloud-sdk/completion.bash.inc' ]; then . '/tmp/google-cloud-sdk/completion.bash.inc'; fi
 
 # fnm (Fast Node Manager) - replaces nvm
-export FNM_DIR="$HOME/.local/share/fnm"
-if [ -d "$FNM_DIR" ]; then
+# Add fnm to PATH if installed to ~/.local/share/fnm (our default install location)
+if [ -d "$HOME/.local/share/fnm" ]; then
+  export FNM_DIR="$HOME/.local/share/fnm"
   export PATH="$FNM_DIR:$PATH"
+fi
+# Initialize fnm if available (works whether installed via our script or Homebrew)
+if command -v fnm &> /dev/null; then
   eval "$(fnm env --use-on-cd)"
 fi
 
