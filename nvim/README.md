@@ -4,7 +4,7 @@ Modern Neovim setup using LazyVim with Claude Code integration.
 
 ## Installation
 
-The neovim configuration will be symlinked to `~/.config/nvim` by the Rakefile.
+The neovim configuration is symlinked to `~/.config/nvim` by `install.sh` (or `scripts/create-symlinks.sh`).
 
 To install manually:
 ```bash

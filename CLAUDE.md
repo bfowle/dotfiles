@@ -20,7 +20,9 @@ This is a personal dotfiles repository providing a complete, automated developme
 git clone <repo-url> ~/.dotfiles && cd ~/.dotfiles && ./install.sh
 ```
 
-That's it! Everything is installed and configured automatically.
+That's it. Works on macOS, Ubuntu/Debian, and WSL. The installer detects your OS
+and uses the appropriate package manager (Homebrew or apt). On macOS, Homebrew is
+auto-installed if missing.
 
 See `SETUP.md` for detailed setup guide.
 
@@ -29,17 +31,22 @@ See `SETUP.md` for detailed setup guide.
 **Automated bash installation** (no Ruby/Rake dependency):
 
 The `install.sh` script orchestrates everything:
-1. Detects OS (Ubuntu/WSL)
-2. Installs system dependencies
-3. Installs Neovim (latest stable AppImage)
-4. Installs fnm + Node.js LTS
-5. Installs Rust (via rustup)
-6. Installs Go
-7. Creates all symlinks (`.ln` files → `~/.*`)
-8. Installs all LSP servers globally
-9. Installs formatters
-10. Installs modern CLI tools
-11. Installs git tools
+1. Detects OS (macOS, Ubuntu/Debian, WSL) and package manager (Homebrew or apt)
+2. Ensures Homebrew is installed on macOS (auto-installs if missing)
+3. Installs system dependencies
+4. Installs Neovim (Homebrew on macOS, AppImage on Linux)
+5. Installs fnm + Node.js LTS
+6. Installs Rust (via rustup)
+7. Installs Go (Homebrew on macOS, tarball on Linux)
+8. Creates all symlinks (`.ln` files to `~/.*`)
+9. Installs all LSP servers globally
+10. Installs formatters
+11. Installs modern CLI tools
+12. Installs git tools
+
+Critical steps (1-5, 8) exit on failure. Optional steps (6-7, 9-12) warn and
+continue. A summary of successes/failures is printed at the end. The installer
+is idempotent -- safe to re-run after partial failures.
 
 **Modular scripts** in `scripts/` can be run independently:
 - `scripts/install-neovim.sh`
@@ -158,7 +165,7 @@ The bashrc configures:
 - **Editor**: vim
 - **Go**: GOPATH at `$HOME/go`, GOBIN in PATH, GO111MODULE=on
 - **Ruby**: GEM_HOME at `$HOME/gems`
-- **Node**: nvm loaded from `$HOME/.nvm`
+- **Node**: fnm loaded from `$HOME/.local/share/fnm`
 - **Rust**: Cargo environment loaded from `$HOME/.cargo/env`
 - **PATH additions**: `$HOME/bin`, `$HOME/.local/bin`, `$HOME/gems/bin`, `$GOBIN`
 
@@ -327,7 +334,7 @@ After modifying dotfiles:
 
 **Symlinked configs**:
 1. Add new `*.ln` files
-2. Run: `rake install`
+2. Run: `./scripts/create-symlinks.sh`
 3. Verify: `ls -la ~/.<filename>`
 
 **Neovim changes**:
@@ -339,7 +346,7 @@ After modifying dotfiles:
 
 **Tmux changes**:
 1. Edit `tmux/tmux.conf.ln`
-2. Run `rake install` (if first time)
+2. Run `./scripts/create-symlinks.sh` (if first time)
 3. Inside tmux: `<prefix> r` to reload
 
 **Before major changes**: Use backup skill!
@@ -369,7 +376,7 @@ tmux                            # Auto-installs TPM + plugins
 ```
 
 **Installation options**:
-- `./install.sh` - Full installation (recommended)
+- `./install.sh` - Full installation (recommended, idempotent)
 - `./install.sh --minimal` - Core only (dotfiles + neovim)
 - `./install.sh --force` - Reinstall everything
 
@@ -385,7 +392,7 @@ tmux                            # Auto-installs TPM + plugins
 - Do not commit secrets or sensitive information
 - Local customizations should go in `~/.bashrc.local` (sourced at end of bashrc)
 - The repo expects `~/.git-prompt.sh` and `~/.git-completion.bash` for git integration
-- Neovim config requires manual symlinking (not managed by Rakefile)
+- Neovim config is symlinked by `install.sh` (or `scripts/create-symlinks.sh`)
 - Backup before major changes using the backup-and-restore skill
 - **Leader key**: Set in TWO places in `nvim/init.lua` (both required due to LazyVim override):
   - Lines 3-4: Before `lazy.setup()` (required by lazy.nvim for proper keymap registration)

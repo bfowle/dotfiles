@@ -119,11 +119,30 @@ bind = resize-pane -Z
 # Enter copy mode with prefix + [
 bind [ copy-mode
 
-# Note: Copy/paste is handled by tmux-yank plugin (configured below with TPM)
-# The plugin handles vi-mode bindings (v, y, Enter) and mouse selection automatically
+# Vi-style copy bindings - traditional vi behavior
+bind-key -T copy-mode-vi v send-keys -X begin-selection
+bind-key -T copy-mode-vi V send-keys -X select-line
+bind-key -T copy-mode-vi C-v send-keys -X rectangle-toggle
 
-# Paste with prefix + ] (using Windows clipboard via PowerShell)
-bind ] run "powershell.exe -command Get-Clipboard | tmux load-buffer - ; tmux paste-buffer"
+# Clipboard integration - OS-specific
+# WSL: use clip.exe / powershell.exe
+if-shell 'test -n "$WSL_DISTRO_NAME"' {
+    bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'iconv -f UTF-8 -t UTF-16LE | clip.exe'
+    bind-key -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel 'iconv -f UTF-8 -t UTF-16LE | clip.exe'
+    bind ] run "powershell.exe -command Get-Clipboard | tmux load-buffer - ; tmux paste-buffer"
+}
+# macOS: use pbcopy/pbpaste
+if-shell 'test "$(uname -s)" = "Darwin"' {
+    bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'pbcopy'
+    bind-key -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel 'pbcopy'
+    bind ] run "pbpaste | tmux load-buffer - ; tmux paste-buffer"
+}
+# Linux (non-WSL): use xclip
+if-shell 'test -z "$WSL_DISTRO_NAME" && test "$(uname -s)" = "Linux" && command -v xclip >/dev/null' {
+    bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'xclip -selection clipboard'
+    bind-key -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel 'xclip -selection clipboard'
+    bind ] run "xclip -selection clipboard -o | tmux load-buffer - ; tmux paste-buffer"
+}
 
 # ============================================
 # Status Bar Configuration
@@ -152,13 +171,13 @@ set -g @plugin 'egel/tmux-gruvbox'
 # Gruvbox theme
 set -g @tmux-gruvbox 'dark' # or 'light'
 
-# tmux-yank configuration (WSL clipboard integration)
-# Disable mouse auto-copy - let terminal handle Ctrl+Shift+C
-set -g @yank_selection_mouse 'disabled'  # Don't auto-copy on mouse selection
-# Use iconv to convert UTF-8 to UTF-16LE for Windows clipboard (fixes UTF-8 characters)
-set -g @override_copy_command 'iconv -f UTF-8 -t UTF-16LE | clip.exe'
-set -g @yank_action 'copy-pipe'  # Copy and show visual feedback in vi-mode
-set -g @yank_with_mouse off  # Disable mouse integration - use terminal's Ctrl+Shift+C
+# tmux-yank configuration
+set -g @yank_selection_mouse 'disabled'
+set -g @yank_with_mouse off
+# WSL: override copy command for Windows clipboard
+if-shell 'test -n "$WSL_DISTRO_NAME"' {
+    set -g @override_copy_command 'iconv -f UTF-8 -t UTF-16LE | clip.exe'
+}
 
 # Resurrect settings
 set -g @resurrect-strategy-nvim 'session'
@@ -190,28 +209,3 @@ set-hook -g client-session-changed 'set-window-option -g aggressive-resize off'
 set-window-option -g aggressive-resize off
 set-window-option -g alternate-screen off
 
-# Unbind tmux-yank mouse copy bindings - we'll handle copy manually
-unbind-key -T copy-mode MouseDragEnd1Pane
-unbind-key -T copy-mode-vi MouseDragEnd1Pane
-unbind-key -T root DoubleClick1Pane
-unbind-key -T root TripleClick1Pane
-
-# Restore mouse drag to enter copy-mode (we previously unbound it)
-# This is tmux's default behavior - needed for mouse selection to work
-bind-key -T root MouseDrag1Pane if-shell -F '#{||:#{pane_in_mode},#{mouse_any_flag}}' 'send-keys -M' 'copy-mode -M'
-
-# Note: Mouse drag will show [line/total] indicator when entering copy-mode
-# But all exit keys (y, Escape, q) work immediately to dismiss it
-
-# Copy mode bindings - always exit after copy
-bind-key -T copy-mode C-S-c send-keys -X copy-pipe-and-cancel "iconv -f UTF-8 -t UTF-16LE | clip.exe"
-bind-key -T copy-mode-vi C-S-c send-keys -X copy-pipe-and-cancel "iconv -f UTF-8 -t UTF-16LE | clip.exe"
-
-# Vi-mode: 'y' should copy AND exit (override tmux-yank's copy-pipe)
-bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "iconv -f UTF-8 -t UTF-16LE | clip.exe"
-
-# Vi-mode: Escape should exit copy-mode (not just clear selection)
-bind-key -T copy-mode-vi Escape send-keys -X cancel
-
-# Vi-mode: q should exit copy-mode immediately
-bind-key -T copy-mode-vi q send-keys -X cancel

@@ -1,17 +1,28 @@
 #!/bin/bash
-# Download and prepare Nerd Fonts for Windows installation
+# Download and prepare Nerd Fonts
 
 source "$(dirname "$0")/common.sh"
 
 log "Setting up Nerd Fonts..."
 
+# macOS: install via Homebrew cask
+if [[ "$OS" == "macos" ]]; then
+    log_info "Installing Nerd Fonts on macOS via Homebrew..."
+    brew install --cask font-caskaydia-cove-nerd-font 2>&1 || true
+    brew install --cask font-jetbrains-mono-nerd-font 2>&1 || true
+    log "✓ Nerd Fonts installed on macOS"
+    log_info "Set your terminal font to 'CaskaydiaCove Nerd Font' or 'JetBrainsMono Nerd Font'"
+    exit 0
+fi
+
 # Check if running in WSL
 if ! grep -qi microsoft /proc/version 2>/dev/null; then
-    log_warn "Not running in WSL - font installation is for WSL/Windows only"
+    log_warn "Not running in WSL - font installation is for WSL/Windows and macOS only"
     log_info "For native Linux, install fonts to ~/.local/share/fonts/"
     exit 0
 fi
 
+# WSL: Download fonts and create Windows installer
 # Get Windows username
 WIN_USER=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d '\r')
 if [ -z "$WIN_USER" ]; then

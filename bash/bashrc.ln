@@ -2,6 +2,7 @@
 #set -o vi
 
 export EDITOR=vim
+export GIT_EDITOR=vim  # Use vim for git commits
 
 # Ensure proper UTF-8 locale for tmux and other tools
 export LC_ALL=C.UTF-8
@@ -75,7 +76,7 @@ if [ -d "$GOBIN" ]; then
   PATH="$GOBIN:$PATH"
 fi
 
-alias grep="/bin/grep $GREP_OPTIONS"
+alias grep="grep --color=auto"
 unset GREP_OPTIONS
 
 #source <(kubectl completion bash)
@@ -83,7 +84,7 @@ unset GREP_OPTIONS
 export GEM_HOME=$HOME/gems
 export PATH=$HOME/gems/bin:$PATH
 
-if [ -f /usr/bin/screenfetch ]; then screenfetch; fi
+if command -v screenfetch &> /dev/null; then screenfetch; fi
 
 # wakatime
 #source ~/repos/bash-wakatime/bash-wakatime.sh

@@ -35,9 +35,16 @@ if command -v rustup &> /dev/null; then
 fi
 
 # clang-format (C/C++ formatter)
-if command -v apt-get &> /dev/null; then
+if ! command -v clang-format &> /dev/null || [[ "$FORCE" == true ]]; then
     log_info "Installing clang-format..."
-    sudo apt-get install -y clang-format 2>&1 | grep -v "^Reading" || true
+    case "$PKG_MANAGER" in
+        apt)
+            sudo apt-get install -y clang-format 2>&1 | grep -v "^Reading" || true
+            ;;
+        brew)
+            brew install clang-format 2>&1 || true
+            ;;
+    esac
 fi
 
 # shfmt (Shell script formatter)

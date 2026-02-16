@@ -4,12 +4,7 @@ Modern tmux setup with TPM (Tmux Plugin Manager) and Gruvbox theme.
 
 ## Installation
 
-The tmux configuration will be symlinked to `~/.tmux.conf` by the Rakefile.
-
-To install manually:
-```bash
-rake install
-```
+The tmux configuration is symlinked to `~/.tmux.conf` by `install.sh` (or `scripts/create-symlinks.sh`).
 
 ## First Launch
 
@@ -124,12 +119,11 @@ tmux
 
 ## Clipboard Integration
 
-The configuration uses `xclip` for clipboard integration on Linux. Ensure it's installed:
-```bash
-sudo apt install xclip  # Debian/Ubuntu
-```
+Clipboard commands are OS-specific and handled automatically via `if-shell`:
 
-For macOS, the config will need modification to use `pbcopy`/`pbpaste`.
+- **WSL**: Uses `clip.exe` and `powershell.exe` for Windows clipboard
+- **macOS**: Uses `pbcopy` and `pbpaste`
+- **Linux (non-WSL)**: Uses `xclip` (install with `sudo apt install xclip`)
 
 ## Neovim Integration
 
@@ -143,7 +137,7 @@ Special settings for neovim:
 This configuration is compatible with tmux 2.9+. Some features require:
 - 256 color terminal support
 - True color support for best appearance
-- xclip for clipboard integration (Linux)
+- xclip for clipboard integration (Linux, non-WSL)
 
 ## Gruvbox Theme
 

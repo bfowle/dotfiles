@@ -7,18 +7,30 @@ log "Installing LSP servers..."
 
 # Ensure npm is available
 if ! command -v npm &> /dev/null; then
-    log_error "npm not found, cannot install LSP servers"
-    exit 1
+    log_warn "npm not found. LSP servers that require npm will be skipped."
+    log_info "Re-run this script after: source ~/.bashrc"
+    HAS_NPM=false
+else
+    HAS_NPM=true
 fi
 
 # TypeScript/JavaScript LSP servers and tools
-log_info "Installing TypeScript/JavaScript LSP servers..."
-npm install -g typescript typescript-language-server \
-    vscode-langservers-extracted \
-    @vue/language-server \
-    @tailwindcss/language-server \
-    tree-sitter-cli \
-    neovim 2>&1 | grep -v "npm WARN" || true
+if [[ "$HAS_NPM" == true ]]; then
+    log_info "Installing TypeScript/JavaScript LSP servers..."
+    npm install -g typescript typescript-language-server \
+        vscode-langservers-extracted \
+        @vue/language-server \
+        @tailwindcss/language-server \
+        tree-sitter-cli \
+        neovim 2>&1 | grep -v "npm WARN" || true
+
+    # Bash LSP server
+    log_info "Installing Bash LSP server..."
+    npm install -g bash-language-server 2>&1 | grep -v "npm WARN" || true
+
+    # JSON/YAML LSP servers (part of vscode-langservers-extracted)
+    log_info "JSON and HTML/CSS LSP servers already installed via vscode-langservers-extracted"
+fi
 
 # Go LSP server
 if command -v go &> /dev/null; then
@@ -33,20 +45,26 @@ if command -v rustup &> /dev/null; then
 fi
 
 # C/C++ LSP server (clangd)
-if command -v apt-get &> /dev/null; then
+if ! command -v clangd &> /dev/null || [[ "$FORCE" == true ]]; then
     log_info "Installing C/C++ LSP server (clangd)..."
-    sudo apt-get install -y clang clangd 2>&1 | grep -v "^Reading" || true
+    case "$PKG_MANAGER" in
+        apt)
+            sudo apt-get install -y clang clangd 2>&1 | grep -v "^Reading" || true
+            ;;
+        brew)
+            # On macOS, clangd comes with Xcode CLI tools
+            if ! xcode-select -p &> /dev/null; then
+                log_info "Installing Xcode Command Line Tools (provides clangd)..."
+                xcode-select --install 2>/dev/null || true
+                log_warn "Xcode CLI tools may require manual confirmation of the dialog"
+            fi
+            # Install llvm for latest clangd
+            brew install llvm 2>&1 || true
+            ;;
+    esac
 fi
 
 # Note: Lua LSP server (lua_ls) is installed via Mason when Neovim first runs
-# It's not available in npm registry, so we let Mason handle it
-
-# Bash LSP server
-log_info "Installing Bash LSP server..."
-npm install -g bash-language-server 2>&1 | grep -v "npm WARN" || true
-
-# JSON/YAML LSP servers (part of vscode-langservers-extracted)
-log_info "JSON and HTML/CSS LSP servers already installed via vscode-langservers-extracted"
 
 # Verify installations
 log_info "Verifying LSP server installations..."

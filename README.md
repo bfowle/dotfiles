@@ -1,8 +1,8 @@
 # Dotfiles
 
-Modern, fully automated development environment for Linux/WSL.
+Modern, fully automated development environment for macOS, Linux, and WSL.
 
-## ⚡ Quick Start
+## Quick Start
 
 ```bash
 git clone https://github.com/yourusername/dotfiles ~/.dotfiles
@@ -20,7 +20,7 @@ tmux
 
 That's it! Everything is configured.
 
-## 📦 What's Included
+## What's Included
 
 ### Development Tools
 - **Neovim** with LazyVim
@@ -32,7 +32,7 @@ That's it! Everything is configured.
 ### Language Support (LSP + Formatting)
 - Rust (rust-analyzer, rustfmt)
 - TypeScript/JavaScript (tsserver, prettier)
-- Vue.js (vue_ls)
+- Vue.js (vue\_ls)
 - Go (gopls, goimports)
 - C/C++ (clangd, clang-format)
 - HTML/CSS (html, cssls, prettier)
@@ -55,12 +55,12 @@ That's it! Everything is configured.
 - **Gruvbox theme** everywhere
 - **Claude Code** integration
 
-## 📖 Documentation
+## Documentation
 
 - **[SETUP.md](SETUP.md)** - Comprehensive setup guide
 - **[CLAUDE.md](CLAUDE.md)** - Guide for Claude Code
 
-## ⚙️ Installation Options
+## Installation Options
 
 ```bash
 ./install.sh            # Full installation (recommended)
@@ -68,7 +68,7 @@ That's it! Everything is configured.
 ./install.sh --force    # Reinstall everything
 ```
 
-## 🔑 Key Features
+## Key Features
 
 ### Neovim
 - **Claude Code integration**: `<leader>oa` to ask Claude
@@ -90,7 +90,7 @@ That's it! Everything is configured.
 - **fzf integration** (`Ctrl+r` for history, `Ctrl+t` for files)
 - **Git prompt** with status
 
-## 🛠️ Development Workflows
+## Development Workflows
 
 ### Rust Project
 ```bash
@@ -116,7 +116,7 @@ nvim
 # Format on save
 ```
 
-## 🔄 Updating
+## Updating
 
 ### Update Everything
 ```bash
@@ -132,7 +132,7 @@ git pull
 
 Or use Claude Code skill: `/update-neovim-plugins`
 
-## 💾 Backup & Restore
+## Backup & Restore
 
 ```bash
 # Backup before changes
@@ -142,7 +142,7 @@ Or use Claude Code skill: `/update-neovim-plugins`
 ~/.dotfiles/.claude/skills/backup-and-restore/restore.sh
 ```
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 Check installation log:
 ```bash
@@ -156,7 +156,7 @@ nvim +checkhealth
 
 See [SETUP.md](SETUP.md) for detailed troubleshooting.
 
-## 📝 Customization
+## Customization
 
 ### Local Bash Overrides
 Create `~/.bashrc.local`:
@@ -173,7 +173,7 @@ return {
 }
 ```
 
-## 🗂️ Structure
+## Structure
 
 ```
 .
@@ -190,20 +190,22 @@ return {
 └── .claude/skills/         # Claude Code skills
 ```
 
-## 🎯 System Requirements
+## System Requirements
 
+- macOS 12+ (Homebrew installed or auto-installed)
 - Ubuntu 20.04+, Debian 11+, or WSL2
 - ~2GB disk space
 - Internet connection
-- sudo access
+- sudo access (Linux/WSL)
 
-## 📄 License
+The installer detects your OS and uses the appropriate package manager (Homebrew on macOS, apt on Debian/Ubuntu). If Homebrew is not installed on macOS, the installer will offer to install it automatically.
+
+## License
 
 MIT
 
-## 🙏 Credits
+## Credits
 
 Built with:
 - [LazyVim](https://github.com/LazyVim/LazyVim)
 - [Gruvbox](https://github.com/morhetz/gruvbox)
-- Many amazing open source tools!

@@ -61,10 +61,11 @@ tmux  # Press Ctrl+a then I to install plugins
 
 ## System Requirements
 
-- **OS**: Ubuntu 20.04+, Debian 11+, or WSL2
+- **OS**: macOS 12+, Ubuntu 20.04+, Debian 11+, or WSL2
 - **Internet connection** (for downloading packages)
 - **~2GB disk space** for all tools
-- **sudo access** for system package installation
+- **sudo access** for system package installation (Linux/WSL)
+- **Homebrew** on macOS (auto-installed if missing)
 
 ## Detailed Installation Steps
 
@@ -126,20 +127,25 @@ If plugins don't auto-install, press: `Ctrl+a` then `I` (capital I)
 
 ## Installation Script Details
 
-The `install.sh` script runs these steps in order:
+The `install.sh` script detects your OS (macOS, Ubuntu/Debian, WSL) and uses the
+appropriate package manager (Homebrew or apt). It runs these steps in order:
 
-1. **System dependencies** - apt packages, build tools
-2. **Neovim** - Latest stable AppImage
-3. **Node.js** - fnm + LTS Node
-4. **Rust** - rustup + toolchain
-5. **Go** - Latest Go compiler
-6. **Symlinks** - All .ln files → home directory
+1. **System dependencies** - build tools, curl, git, python3, etc.
+2. **Neovim** - Homebrew on macOS, AppImage on Linux
+3. **Node.js** - fnm + LTS Node (cross-platform)
+4. **Rust** - rustup + toolchain (cross-platform)
+5. **Go** - Homebrew on macOS, tarball on Linux
+6. **Symlinks** - All .ln files to home directory
 7. **LSP servers** - Language servers for all languages
 8. **Formatters** - Code formatters
-9. **CLI tools** - Modern replacements
+9. **CLI tools** - ripgrep, fd, bat, eza, fzf, delta, zoxide
 10. **Git tools** - gh, lazygit
 
 Each step is modular and can be run independently from `scripts/` directory.
+
+Steps 1-3 and 6 are critical (installer exits on failure). Steps 4-5 and 7-10 are
+optional (installer warns and continues). A summary of successes and failures is
+printed at the end. The installer is idempotent -- safe to re-run after partial failures.
 
 ## What Gets Symlinked
 
@@ -403,13 +409,22 @@ sudo chown -R $USER:$USER ~/.config/nvim
 sudo chown -R $USER:$USER ~/.local
 ```
 
-## WSL-Specific Notes
+## Platform-Specific Notes
 
-### Clipboard Integration
+### macOS
 
-WSL should automatically work with Windows clipboard via `xclip`.
+- Homebrew is auto-installed if missing (supports both Apple Silicon and Intel)
+- Clipboard works automatically via pbcopy/pbpaste
+- Nerd Fonts are installed via `brew install --cask`
+- Neovim, Go, CLI tools, and git tools are all installed via Homebrew
 
-If not working, install win32yank:
+### WSL
+
+- Clipboard integration uses `clip.exe` and `powershell.exe`
+- Nerd Fonts must be installed on the Windows side (the installer downloads them
+  and creates a PowerShell install script)
+
+If clipboard is not working, install win32yank:
 ```bash
 curl -sLo /tmp/win32yank.zip https://github.com/equalsraf/win32yank/releases/download/v0.0.4/win32yank-x64.zip
 unzip -p /tmp/win32yank.zip win32yank.exe > /tmp/win32yank.exe
@@ -417,7 +432,7 @@ chmod +x /tmp/win32yank.exe
 sudo mv /tmp/win32yank.exe /usr/local/bin/
 ```
 
-### Docker
+### Docker (WSL)
 
 Use Windows Docker Desktop instead of installing Docker in WSL.
 
@@ -505,8 +520,13 @@ To remove everything:
 # Remove installed tools
 rm -rf ~/.local/share/fnm
 rm -rf ~/.cargo
-rm -rf /usr/local/go
 rm -rf ~/.fzf
+
+# Linux only
+sudo rm -rf /usr/local/go
+
+# macOS only (if installed via Homebrew)
+# brew uninstall neovim go ripgrep fd bat eza fzf git-delta zoxide gh lazygit
 
 # Remove configs (be careful!)
 rm ~/.bashrc ~/.bash_profile ~/.tmux.conf

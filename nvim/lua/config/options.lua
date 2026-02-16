@@ -60,5 +60,5 @@ opt.undolevels = 10000
 
 -- Performance optimizations
 opt.synmaxcol = 300 -- only highlight first 300 columns (prevents lag on long lines)
-opt.redrawtime = 1500 -- longer redraw time for complex syntax (default: 2000)
 -- Note: lazyredraw disabled - it prevents visual feedback during repeated operations (indenting, etc.)
+-- Note: redrawtime uses default (2000ms) for complete syntax highlighting

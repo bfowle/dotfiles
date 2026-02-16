@@ -10,13 +10,13 @@
 # - Tmux with TPM
 # - All dotfile symlinks
 #
+# Supports: Debian/Ubuntu, macOS, WSL
+#
 # Usage: ./install.sh [options]
 #   --minimal    Install only core dotfiles and neovim
 #   --force      Reinstall everything, even if already present
 #   --help       Show this help message
 #
-
-set -e  # Exit on error
 
 # Configuration
 DOTFILES_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -28,7 +28,7 @@ FORCE=false
 # Ensure scripts directory exists
 mkdir -p "$SCRIPTS_DIR"
 
-# Source common functions
+# Source common functions (auto-detects OS)
 source "$SCRIPTS_DIR/common.sh"
 
 # Export variables for sub-scripts
@@ -58,31 +58,6 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Detect OS
-detect_os() {
-    if [[ -f /etc/os-release ]]; then
-        . /etc/os-release
-        OS=$ID
-        OS_VERSION=$VERSION_ID
-    elif [[ "$OSTYPE" == "darwin"* ]]; then
-        OS="macos"
-    else
-        OS="unknown"
-    fi
-
-    # Check if WSL
-    if grep -qi microsoft /proc/version 2>/dev/null; then
-        IS_WSL=true
-    else
-        IS_WSL=false
-    fi
-
-    log_info "Detected OS: $OS ${OS_VERSION:-}"
-    if [[ "$IS_WSL" == true ]]; then
-        log_info "Running in WSL"
-    fi
-}
-
 # Check if running as root
 if [[ $EUID -eq 0 ]]; then
     log_error "This script should NOT be run as root (don't use sudo)"
@@ -90,10 +65,72 @@ if [[ $EUID -eq 0 ]]; then
     exit 1
 fi
 
+# ============================================
+# Step runner with error tracking
+# ============================================
+
+STEP_SUCCESSES=()
+STEP_FAILURES=()
+
+run_step() {
+    local script="$1"
+    local label="$2"
+    local critical="${3:-false}"
+
+    if [[ ! -f "$script" ]]; then
+        log_warn "Script not found: $script"
+        STEP_FAILURES+=("$label (script missing)")
+        if [[ "$critical" == "true" ]]; then
+            fatal "$label script is missing"
+        fi
+        return 1
+    fi
+
+    log "Running: $label..."
+    if bash "$script"; then
+        STEP_SUCCESSES+=("$label")
+    else
+        STEP_FAILURES+=("$label")
+        if [[ "$critical" == "true" ]]; then
+            fatal "$label failed (critical step)"
+        else
+            log_warn "$label had errors (non-critical, continuing)"
+        fi
+        return 1
+    fi
+}
+
+print_summary() {
+    echo ""
+    echo "========================================="
+    echo " Installation Summary"
+    echo "========================================="
+    if [[ ${#STEP_SUCCESSES[@]} -gt 0 ]]; then
+        echo ""
+        echo " Succeeded:"
+        for item in "${STEP_SUCCESSES[@]}"; do
+            echo "   ✓ $item"
+        done
+    fi
+    if [[ ${#STEP_FAILURES[@]} -gt 0 ]]; then
+        echo ""
+        echo " Failed:"
+        for item in "${STEP_FAILURES[@]}"; do
+            echo "   ✗ $item"
+        done
+        echo ""
+        echo " Re-run ./install.sh to retry failed steps."
+    fi
+    echo "========================================="
+}
+
+# ============================================
 # Start installation
+# ============================================
+
 echo "╔════════════════════════════════════════════════════════════╗"
 echo "║                                                            ║"
-echo "║        Automated Dotfiles Installation                    ║"
+echo "║             Automated Dotfiles Installation                ║"
 echo "║                                                            ║"
 echo "╚════════════════════════════════════════════════════════════╝"
 echo ""
@@ -101,7 +138,16 @@ echo ""
 # Initialize log
 echo "Installation started at $(date)" > "$LOG_FILE"
 
-detect_os
+log_info "Detected OS: $OS ${OS_VERSION:-}"
+if [[ "$IS_WSL" == true ]]; then
+    log_info "Running in WSL"
+fi
+log_info "Package manager: $PKG_MANAGER"
+
+# Ensure Homebrew on macOS (critical dependency)
+if [[ "$OS" == "macos" ]]; then
+    ensure_brew || fatal "Homebrew is required on macOS but could not be installed."
+fi
 
 # Backup existing configs
 if [[ "$FORCE" == true ]] || [[ ! -d "$HOME/.dotfiles-backups" ]]; then
@@ -111,81 +157,84 @@ if [[ "$FORCE" == true ]] || [[ ! -d "$HOME/.dotfiles-backups" ]]; then
     fi
 fi
 
+# ============================================
 # Run installation scripts in order
+# ============================================
+
 log "Starting installation process..."
 echo ""
 
-# 1. System dependencies
-if [[ -f "$SCRIPTS_DIR/install-deps.sh" ]]; then
-    bash "$SCRIPTS_DIR/install-deps.sh" || log_error "Failed to install system dependencies"
+# 1. System dependencies (critical)
+run_step "$SCRIPTS_DIR/install-deps.sh" "System dependencies" true
+
+# 2. Neovim (critical)
+run_step "$SCRIPTS_DIR/install-neovim.sh" "Neovim" true
+
+# 3. Node.js via fnm (critical — needed for LSP servers)
+run_step "$SCRIPTS_DIR/install-node.sh" "Node.js (fnm)" true
+
+# Source fnm in current session so npm is available for later steps
+if [[ -d "$HOME/.local/share/fnm" ]]; then
+    export FNM_DIR="$HOME/.local/share/fnm"
+    export PATH="$FNM_DIR:$PATH"
+    eval "$(fnm env --use-on-cd 2>/dev/null)" || true
+fi
+# Also check brew-installed fnm on macOS
+if [[ "$OS" == "macos" ]] && command -v fnm &> /dev/null; then
+    eval "$(fnm env --use-on-cd 2>/dev/null)" || true
 fi
 
-# 2. Neovim
-if [[ -f "$SCRIPTS_DIR/install-neovim.sh" ]]; then
-    bash "$SCRIPTS_DIR/install-neovim.sh" || log_error "Failed to install Neovim"
+# 4. Rust (optional — nice to have, not blocking)
+run_step "$SCRIPTS_DIR/install-rust.sh" "Rust" false
+
+# Source cargo env so cargo is available for later steps
+if [[ -f "$HOME/.cargo/env" ]]; then
+    source "$HOME/.cargo/env"
 fi
 
-# 3. Node.js (fnm)
-if [[ -f "$SCRIPTS_DIR/install-node.sh" ]]; then
-    bash "$SCRIPTS_DIR/install-node.sh" || log_error "Failed to install Node.js"
+# 5. Go (optional)
+run_step "$SCRIPTS_DIR/install-go.sh" "Go" false
+
+# Source Go paths for current session
+if [[ "$OS" == "macos" ]] && command -v go &> /dev/null; then
+    export GOPATH="$HOME/go"
+    export GOBIN="$GOPATH/bin"
+    export PATH="$GOBIN:$PATH"
+elif [ -d "/usr/local/go/bin" ]; then
+    export PATH="/usr/local/go/bin:$PATH"
+    export GOPATH="$HOME/go"
+    export GOBIN="$GOPATH/bin"
+    export PATH="$GOBIN:$PATH"
 fi
 
-# 4. Rust
-if [[ -f "$SCRIPTS_DIR/install-rust.sh" ]]; then
-    bash "$SCRIPTS_DIR/install-rust.sh" || log_error "Failed to install Rust"
-fi
-
-# 5. Go
-if [[ -f "$SCRIPTS_DIR/install-go.sh" ]]; then
-    bash "$SCRIPTS_DIR/install-go.sh" || log_error "Failed to install Go"
-    # Source Go paths for current session
-    if [ -d "/usr/local/go/bin" ]; then
-        export PATH="/usr/local/go/bin:$PATH"
-        export GOPATH="$HOME/go"
-        export GOBIN="$GOPATH/bin"
-        export PATH="$GOBIN:$PATH"
-    fi
-fi
-
-# 6. Create symlinks
-if [[ -f "$SCRIPTS_DIR/create-symlinks.sh" ]]; then
-    bash "$SCRIPTS_DIR/create-symlinks.sh" || log_error "Failed to create symlinks"
-fi
+# 6. Create symlinks (critical)
+run_step "$SCRIPTS_DIR/create-symlinks.sh" "Dotfile symlinks" true
 
 # Only install optional tools if not minimal install
 if [[ "$MINIMAL" == false ]]; then
     # 7. LSP servers
-    if [[ -f "$SCRIPTS_DIR/install-lsp-servers.sh" ]]; then
-        bash "$SCRIPTS_DIR/install-lsp-servers.sh" || log_warn "Some LSP servers may not have installed"
-    fi
+    run_step "$SCRIPTS_DIR/install-lsp-servers.sh" "LSP servers" false
 
     # 8. Formatters
-    if [[ -f "$SCRIPTS_DIR/install-formatters.sh" ]]; then
-        bash "$SCRIPTS_DIR/install-formatters.sh" || log_warn "Some formatters may not have installed"
-    fi
+    run_step "$SCRIPTS_DIR/install-formatters.sh" "Formatters" false
 
     # 9. Modern CLI tools
-    if [[ -f "$SCRIPTS_DIR/install-cli-tools.sh" ]]; then
-        bash "$SCRIPTS_DIR/install-cli-tools.sh" || log_warn "Some CLI tools may not have installed"
-    fi
+    run_step "$SCRIPTS_DIR/install-cli-tools.sh" "CLI tools" false
 
     # 10. Git tools
-    if [[ -f "$SCRIPTS_DIR/install-git-tools.sh" ]]; then
-        bash "$SCRIPTS_DIR/install-git-tools.sh" || log_warn "Some Git tools may not have installed"
-    fi
+    run_step "$SCRIPTS_DIR/install-git-tools.sh" "Git tools" false
 
-    # 11. Nerd Fonts (WSL only)
-    if [[ -f "$SCRIPTS_DIR/install-fonts.sh" ]]; then
-        bash "$SCRIPTS_DIR/install-fonts.sh" || log_warn "Font setup may need manual completion"
-    fi
+    # 11. Nerd Fonts
+    run_step "$SCRIPTS_DIR/install-fonts.sh" "Nerd Fonts" false
 
     # 12. Tmux Plugin Manager (TPM)
-    if [[ -f "$SCRIPTS_DIR/install-tmux-plugins.sh" ]]; then
-        bash "$SCRIPTS_DIR/install-tmux-plugins.sh" || log_warn "TPM setup may need manual completion"
-    fi
+    run_step "$SCRIPTS_DIR/install-tmux-plugins.sh" "Tmux plugins" false
 fi
 
+# ============================================
 # Final setup
+# ============================================
+
 log "Running final setup steps..."
 
 # Install vim-plug for legacy vim (if vim directory exists)
@@ -198,6 +247,9 @@ fi
 # Make backup/restore scripts executable
 chmod +x "$DOTFILES_DIR/.claude/skills/backup-and-restore"/*.sh 2>/dev/null || true
 
+# Print summary
+print_summary
+
 echo ""
 echo "╔════════════════════════════════════════════════════════════╗"
 echo "║                                                            ║"
@@ -206,7 +258,7 @@ echo "║                                                            ║"
 echo "╚════════════════════════════════════════════════════════════╝"
 echo ""
 
-log "Installation completed successfully!"
+log "Installation completed!"
 echo ""
 log "Setting up Neovim plugins (this will install LazyVim and all plugins)..."
 echo ""

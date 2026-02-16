@@ -2,6 +2,7 @@
 	excludesfile = ~/.gitignore
 	pager = delta
 	autocrlf = input
+	editor = vim
 
 [interactive]
 	diffFilter = delta --color-only
@@ -44,3 +45,8 @@
 [user]
 	email = brettfowle@gmail.com
 	name = bfowle
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
