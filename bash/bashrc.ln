@@ -89,7 +89,7 @@ if [ -d "$HOME/.local/bin" ]; then
 fi
 
 # Go configuration
-if [ -d "/usr/local/go/bin" ]; then
+if [ -d "/usr/local/go/bin" ] && /usr/local/go/bin/go version &>/dev/null; then
   PATH="/usr/local/go/bin:$PATH"
 fi
 export GO111MODULE=on

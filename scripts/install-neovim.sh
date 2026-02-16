@@ -5,44 +5,49 @@ source "$(dirname "$0")/common.sh"
 
 log "Installing Neovim..."
 
-# Check if neovim is already installed and version
-if command -v nvim &> /dev/null && [[ "$FORCE" != true ]]; then
-    NVIM_VERSION=$(nvim --version | head -n1 | sed 's/.*v\([0-9]*\.[0-9]*\).*/\1/')
-    log_info "Neovim already installed (version $NVIM_VERSION)"
-
-    # Parse major and minor version
-    MAJOR=$(echo "$NVIM_VERSION" | cut -d. -f1)
-    MINOR=$(echo "$NVIM_VERSION" | cut -d. -f2)
-
-    # Check if version is >= 0.9 (proper version comparison)
-    if [ "$MAJOR" -gt 0 ] || [ "$MAJOR" -eq 0 -a "$MINOR" -ge 9 ]; then
-        log "✓ Neovim $NVIM_VERSION is up to date (>= 0.9)"
-        exit 0
-    else
-        log_warn "Neovim version is old ($NVIM_VERSION < 0.9), upgrading..."
-    fi
-fi
-
-# Check if nvim is currently running (would cause file busy error)
-if pgrep -x nvim > /dev/null 2>/dev/null; then
-    log_error "Neovim is currently running. Please close all nvim instances and try again."
-    exit 1
-fi
-
 if [[ "$OS" == "macos" ]]; then
-    # macOS: install via Homebrew
-    log_info "Installing Neovim via Homebrew..."
-    brew install neovim
+    # macOS: let Homebrew handle versioning
+    if command -v nvim &> /dev/null && [[ "$FORCE" != true ]]; then
+        log_info "Neovim already installed ($(nvim --version | head -n1))"
+        log_info "Upgrading if newer version available..."
+        brew upgrade neovim 2>&1 || true
+    else
+        log_info "Installing Neovim via Homebrew..."
+        brew install neovim
+    fi
 
     if command -v nvim &> /dev/null; then
-        INSTALLED_VERSION=$(nvim --version | head -n1)
-        log "✓ Neovim installed successfully: $INSTALLED_VERSION"
+        log "✓ Neovim installed: $(nvim --version | head -n1)"
     else
         log_error "Neovim installation via Homebrew failed"
         exit 1
     fi
 else
-    # Linux: Download and install latest stable Neovim AppImage
+    # Linux: version check + AppImage install
+
+    # Check if neovim is already installed and recent enough
+    if command -v nvim &> /dev/null && [[ "$FORCE" != true ]]; then
+        NVIM_VERSION=$(nvim --version | head -n1 | sed 's/.*v\([0-9]*\.[0-9]*\).*/\1/')
+        log_info "Neovim already installed (version $NVIM_VERSION)"
+
+        MAJOR=$(echo "$NVIM_VERSION" | cut -d. -f1)
+        MINOR=$(echo "$NVIM_VERSION" | cut -d. -f2)
+
+        if [ "$MAJOR" -gt 0 ] 2>/dev/null || [ "$MAJOR" -eq 0 -a "$MINOR" -ge 9 ] 2>/dev/null; then
+            log "✓ Neovim $NVIM_VERSION is up to date (>= 0.9)"
+            exit 0
+        else
+            log_warn "Neovim version is old ($NVIM_VERSION < 0.9), upgrading..."
+        fi
+    fi
+
+    # Check if nvim is currently running (would cause file busy error)
+    if pgrep -x nvim > /dev/null 2>/dev/null; then
+        log_error "Neovim is currently running. Please close all nvim instances and try again."
+        exit 1
+    fi
+
+    # Download and install latest stable Neovim AppImage
     ARCH=$(uname -m)
     case $ARCH in
         x86_64)

@@ -5,35 +5,30 @@ source "$(dirname "$0")/common.sh"
 
 log "Installing Go..."
 
-GO_VERSION="1.22.0"  # Update this as needed
-
-# Check if Go is already installed
-if command -v go &> /dev/null && [[ "$FORCE" != true ]]; then
-    INSTALLED_VERSION=$(go version | sed 's/.*go\([0-9]*\.[0-9]*\.[0-9]*\).*/\1/')
-    log_info "Go already installed (version $INSTALLED_VERSION)"
-
-    # Check if version is recent enough
-    if awk "BEGIN {exit !($INSTALLED_VERSION >= 1.21)}"; then
-        log "✓ Go is up to date"
-        exit 0
-    else
-        log_warn "Go version is old, upgrading..."
-    fi
-fi
-
 if [[ "$OS" == "macos" ]]; then
-    # macOS: install via Homebrew
-    log_info "Installing Go via Homebrew..."
-    brew install go
+    # macOS: let Homebrew handle versioning
+    # Clean up any leftover Linux Go installation
+    if [[ -d "/usr/local/go" ]] && ! /usr/local/go/bin/go version &>/dev/null; then
+        log_warn "Found non-functional Go at /usr/local/go (likely a Linux binary), removing..."
+        sudo rm -rf /usr/local/go
+    fi
+
+    if command -v go &> /dev/null && [[ "$FORCE" != true ]]; then
+        log_info "Go already installed ($(go version))"
+        log_info "Upgrading if newer version available..."
+        brew upgrade go 2>&1 || true
+    else
+        log_info "Installing Go via Homebrew..."
+        brew install go
+    fi
 
     if command -v go &> /dev/null; then
         export GOPATH="$HOME/go"
         export GOBIN="$GOPATH/bin"
         export PATH="$GOBIN:$PATH"
-
         mkdir -p "$GOPATH/bin" "$GOPATH/src" "$GOPATH/pkg"
 
-        log "✓ Go $(go version | sed 's/.*go\([0-9]*\.[0-9]*\.[0-9]*\).*/\1/') installed"
+        log "✓ $(go version)"
         log_info "GOPATH: $GOPATH"
         log_info "GOBIN: $GOBIN"
     else
@@ -41,7 +36,21 @@ if [[ "$OS" == "macos" ]]; then
         exit 1
     fi
 else
-    # Linux: download tarball
+    # Linux: version check + tarball install
+    GO_VERSION="1.22.0"  # Update this as needed
+
+    if command -v go &> /dev/null && [[ "$FORCE" != true ]]; then
+        INSTALLED_VERSION=$(go version | sed 's/.*go\([0-9]*\.[0-9]*\.[0-9]*\).*/\1/')
+        log_info "Go already installed (version $INSTALLED_VERSION)"
+
+        if awk "BEGIN {exit !($INSTALLED_VERSION >= 1.21)}" 2>/dev/null; then
+            log "✓ Go is up to date"
+            exit 0
+        else
+            log_warn "Go version is old, upgrading..."
+        fi
+    fi
+
     GO_INSTALL_DIR="/usr/local/go"
 
     # Detect architecture
@@ -76,7 +85,7 @@ else
         export PATH="$GOBIN:$PATH"
 
         if command -v go &> /dev/null; then
-            log "✓ Go $(go version | sed 's/.*go\([0-9]*\.[0-9]*\.[0-9]*\).*/\1/') installed"
+            log "✓ $(go version)"
 
             # Create GOPATH directories
             mkdir -p "$GOPATH/bin" "$GOPATH/src" "$GOPATH/pkg"

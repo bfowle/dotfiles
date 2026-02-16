@@ -5,6 +5,11 @@ source "$(dirname "$0")/common.sh"
 
 log "Installing code formatters..."
 
+# Helper: check if go is functional (not just present — a leftover Linux binary won't work)
+has_working_go() {
+    command -v go &> /dev/null && go version &> /dev/null
+}
+
 # Prettier (JS/TS/HTML/CSS/JSON/YAML/Markdown)
 if command -v npm &> /dev/null; then
     log_info "Installing Prettier..."
@@ -18,13 +23,16 @@ if command -v cargo &> /dev/null; then
 fi
 
 # Black (Python formatter)
-if command -v pip3 &> /dev/null; then
+if [[ "$PKG_MANAGER" == "brew" ]]; then
+    log_info "Installing black (Python formatter) via Homebrew..."
+    brew install black 2>&1 || true
+elif command -v pip3 &> /dev/null; then
     log_info "Installing black (Python formatter)..."
     pip3 install --user black 2>&1 | grep -v "Requirement already satisfied" || true
 fi
 
 # gofmt and goimports (Go formatters - come with Go)
-if command -v go &> /dev/null; then
+if has_working_go; then
     log_info "Installing goimports (Go formatter)..."
     go install golang.org/x/tools/cmd/goimports@latest 2>&1 || true
 fi
@@ -48,7 +56,10 @@ if ! command -v clang-format &> /dev/null || [[ "$FORCE" == true ]]; then
 fi
 
 # shfmt (Shell script formatter)
-if command -v go &> /dev/null; then
+if [[ "$PKG_MANAGER" == "brew" ]]; then
+    log_info "Installing shfmt (Shell formatter) via Homebrew..."
+    brew install shfmt 2>&1 || true
+elif has_working_go; then
     log_info "Installing shfmt (Shell formatter)..."
     go install mvdan.cc/sh/v3/cmd/shfmt@latest 2>&1 || true
 fi

@@ -200,7 +200,7 @@ if [[ "$OS" == "macos" ]] && command -v go &> /dev/null; then
     export GOPATH="$HOME/go"
     export GOBIN="$GOPATH/bin"
     export PATH="$GOBIN:$PATH"
-elif [ -d "/usr/local/go/bin" ]; then
+elif [ -d "/usr/local/go/bin" ] && /usr/local/go/bin/go version &>/dev/null; then
     export PATH="/usr/local/go/bin:$PATH"
     export GOPATH="$HOME/go"
     export GOBIN="$GOPATH/bin"
@@ -253,7 +253,7 @@ print_summary
 echo ""
 echo "╔════════════════════════════════════════════════════════════╗"
 echo "║                                                            ║"
-echo "║        ✓ Installation Complete!                           ║"
+echo "║                ✓ Installation Complete!                    ║"
 echo "║                                                            ║"
 echo "╚════════════════════════════════════════════════════════════╝"
 echo ""

@@ -34,7 +34,7 @@ if ! command -v lazygit &> /dev/null || [[ "$FORCE" == true ]]; then
             brew install lazygit
             ;;
         *)
-            if command -v go &> /dev/null; then
+            if command -v go &> /dev/null && go version &> /dev/null; then
                 go install github.com/jesseduffield/lazygit@latest 2>&1 || true
             else
                 # Download binary for Linux

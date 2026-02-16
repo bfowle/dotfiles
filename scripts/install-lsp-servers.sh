@@ -33,7 +33,7 @@ if [[ "$HAS_NPM" == true ]]; then
 fi
 
 # Go LSP server
-if command -v go &> /dev/null; then
+if command -v go &> /dev/null && go version &> /dev/null; then
     log_info "Installing Go LSP server (gopls)..."
     go install golang.org/x/tools/gopls@latest 2>&1 || true
 fi
