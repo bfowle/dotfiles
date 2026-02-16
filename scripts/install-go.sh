@@ -11,6 +11,7 @@ if [[ "$OS" == "macos" ]]; then
     if [[ -d "/usr/local/go" ]] && ! /usr/local/go/bin/go version &>/dev/null; then
         log_warn "Found non-functional Go at /usr/local/go (likely a Linux binary), removing..."
         sudo rm -rf /usr/local/go
+        hash -r 2>/dev/null  # clear bash's cached path
     fi
 
     if command -v go &> /dev/null && [[ "$FORCE" != true ]]; then

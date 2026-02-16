@@ -34,7 +34,7 @@ set directory=~/.vim/tmp
 " solarized setup
 syntax enable
 set background=dark
-colorscheme gruvbox
+silent! colorscheme gruvbox
 
 " display customization
 set number

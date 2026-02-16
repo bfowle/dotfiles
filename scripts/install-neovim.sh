@@ -7,7 +7,14 @@ log "Installing Neovim..."
 
 if [[ "$OS" == "macos" ]]; then
     # macOS: let Homebrew handle versioning
-    if command -v nvim &> /dev/null && [[ "$FORCE" != true ]]; then
+    # Clean up any leftover Linux AppImage installation
+    if [[ -f "$HOME/.local/bin/nvim.appimage" ]] && ! "$HOME/.local/bin/nvim.appimage" --version &>/dev/null; then
+        log_warn "Found non-functional nvim at ~/.local/bin (likely a Linux AppImage), removing..."
+        rm -f "$HOME/.local/bin/nvim.appimage" "$HOME/.local/bin/nvim"
+        hash -r 2>/dev/null  # clear bash's cached path
+    fi
+
+    if command -v nvim &> /dev/null && nvim --version &>/dev/null && [[ "$FORCE" != true ]]; then
         log_info "Neovim already installed ($(nvim --version | head -n1))"
         log_info "Upgrading if newer version available..."
         brew upgrade neovim 2>&1 || true
@@ -16,7 +23,7 @@ if [[ "$OS" == "macos" ]]; then
         brew install neovim
     fi
 
-    if command -v nvim &> /dev/null; then
+    if command -v nvim &> /dev/null && nvim --version &>/dev/null; then
         log "✓ Neovim installed: $(nvim --version | head -n1)"
     else
         log_error "Neovim installation via Homebrew failed"

@@ -238,10 +238,19 @@ fi
 log "Running final setup steps..."
 
 # Install vim-plug for legacy vim (if vim directory exists)
-if [[ -d "$DOTFILES_DIR/vim" ]] && [[ ! -f "$HOME/.vim/autoload/plug.vim" ]]; then
-    log_info "Installing vim-plug for legacy vim..."
-    curl -fLo "$HOME/.vim/autoload/plug.vim" --create-dirs \
-        https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim 2>/dev/null || true
+if [[ -d "$DOTFILES_DIR/vim" ]]; then
+    if [[ ! -f "$HOME/.vim/autoload/plug.vim" ]]; then
+        log_info "Installing vim-plug for legacy vim..."
+        curl -fLo "$HOME/.vim/autoload/plug.vim" --create-dirs \
+            https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim 2>/dev/null || true
+    fi
+
+    # Install vim plugins if vim-plug is available
+    if [[ -f "$HOME/.vim/autoload/plug.vim" ]] && command -v vim &> /dev/null; then
+        log_info "Installing vim plugins..."
+        mkdir -p "$HOME/.vim/tmp"
+        vim -es -u "$HOME/.vimrc" +PlugInstall +qall 2>/dev/null || true
+    fi
 fi
 
 # Make backup/restore scripts executable
