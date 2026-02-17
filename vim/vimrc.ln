@@ -71,7 +71,13 @@ set ignorecase
 set smartcase
 
 " yank to system clipboard
-set clipboard=unnamedplus
+" 'unnamed' uses * register (works on macOS + Linux)
+" 'unnamedplus' uses + register (Linux only in terminal vim)
+if has('mac')
+  set clipboard=unnamed
+else
+  set clipboard=unnamedplus
+endif
 
 " override javascript commenting
 let g:tcomment_types = {
