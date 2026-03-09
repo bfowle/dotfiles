@@ -60,6 +60,9 @@ if ! type -t __git_ps1 &>/dev/null; then
   unset _brew_prefix
 fi
 
+# Suppress zoxide doctor warnings (init happens at end of file)
+export _ZO_DOCTOR=0
+
 # source it all
 for f in $(find -L ~/.dotfiles -name \*.bash); do
   source $f
@@ -154,15 +157,16 @@ fi
 export LESS="-R --mouse"
 export LESSCHARSET="utf-8"
 
-if command -v zoxide &> /dev/null; then
-  eval "$(zoxide init bash)"
-  alias cd='z'
-fi
-
 # fzf
 if [ -f ~/.fzf.bash ]; then
   source ~/.fzf.bash
 elif [ -d ~/.fzf ]; then
   # Fallback: manually add fzf to PATH if install script didn't create ~/.fzf.bash
   export PATH="$HOME/.fzf/bin:$PATH"
+fi
+
+# zoxide - must be last in bashrc
+if command -v zoxide &> /dev/null; then
+  eval "$(zoxide init bash)"
+  alias cd='z'
 fi
