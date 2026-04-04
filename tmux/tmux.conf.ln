@@ -20,8 +20,10 @@ set-window-option -g mode-keys vi
 # Scrollback buffer
 set-option -g history-limit 10000
 
-# Mouse support
-set -g mouse on
+# Mouse support disabled - terminal handles text selection directly
+# Use Shift+scroll for terminal scrolling, or prefix+[ for tmux scroll mode
+# Pane navigation: prefix + h/j/k/l or prefix + 0-9
+set -g mouse off
 
 # Start windows and panes at 1, not 0
 set -g base-index 1
@@ -38,17 +40,18 @@ set -g window-size latest
 # Note: tmux-sensible plugin re-enables this, so we use hooks to keep it disabled (see bottom of file)
 set-window-option -g aggressive-resize off
 
-# Disable alternate screen - prevents [0/0] scrollback issues
-# Programs like vim/less/man use alternate screen which has no scrollback by design
-# With this off, all output stays in main buffer and is scrollable
-set-window-option -g alternate-screen off
-
 # Minimize escape delay (important for neovim)
 # Set to 10ms (recommended for neovim) - 0 can cause escape sequence corruption
 set -s escape-time 10
 
 # Enable focus events (required for neovim autoread)
 set-option -g focus-events on
+
+# Enable OSC 52 clipboard - lets tmux set terminal clipboard natively
+# Windows Terminal, iTerm2, and modern terminals all support this
+# This handles mouse-drag copy automatically (via copy-mode -M auto-exit)
+# Explicit clip.exe/pbcopy/xclip pipes are kept for keyboard copy (y/Enter)
+set -g set-clipboard on
 
 # ============================================
 # Prefix Key
@@ -121,25 +124,24 @@ bind-key -T copy-mode-vi V send-keys -X select-line
 bind-key -T copy-mode-vi C-v send-keys -X rectangle-toggle
 
 # Clipboard integration - OS-specific
+# Mouse drag copy is handled by tmux natively via set-clipboard/OSC 52
+# These bindings are for keyboard copy mode (y/Enter) and paste (])
 # WSL: use clip.exe / powershell.exe
 if-shell 'test -n "$WSL_DISTRO_NAME"' {
     bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'iconv -f UTF-8 -t UTF-16LE | clip.exe'
     bind-key -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel 'iconv -f UTF-8 -t UTF-16LE | clip.exe'
-    bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe 'iconv -f UTF-8 -t UTF-16LE | clip.exe'
     bind ] run "powershell.exe -command Get-Clipboard | tmux load-buffer - ; tmux paste-buffer"
 }
 # macOS: use pbcopy/pbpaste
 if-shell 'test "$(uname -s)" = "Darwin"' {
     bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'pbcopy'
     bind-key -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel 'pbcopy'
-    bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe 'pbcopy'
     bind ] run "pbpaste | tmux load-buffer - ; tmux paste-buffer"
 }
 # Linux (non-WSL): use xclip
 if-shell 'test -z "$WSL_DISTRO_NAME" && test "$(uname -s)" = "Linux" && command -v xclip >/dev/null' {
     bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'xclip -selection clipboard'
     bind-key -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel 'xclip -selection clipboard'
-    bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe 'xclip -selection clipboard'
     bind ] run "xclip -selection clipboard -o | tmux load-buffer - ; tmux paste-buffer"
 }
 
@@ -170,9 +172,10 @@ set -g @plugin 'egel/tmux-gruvbox'
 # Gruvbox theme
 set -g @tmux-gruvbox 'dark' # or 'light'
 
-# tmux-yank configuration
+# tmux-yank configuration - disable mouse handling, let tmux native OSC 52 handle it
 set -g @yank_selection_mouse 'disabled'
 set -g @yank_with_mouse off
+set -g @yank_action 'copy-pipe'
 # WSL: override copy command for Windows clipboard
 if-shell 'test -n "$WSL_DISTRO_NAME"' {
     set -g @override_copy_command 'iconv -f UTF-8 -t UTF-16LE | clip.exe'
@@ -206,11 +209,14 @@ set-hook -g client-session-changed 'set-window-option -g aggressive-resize off'
 
 # Also set directly after TPM loads (hooks only run on events, this runs on source-file)
 set-window-option -g aggressive-resize off
-set-window-option -g alternate-screen off
 
 # Pane selection (vim-style) - after TPM so tmux-sensible doesn't override
 bind h select-pane -L
 bind j select-pane -D
 bind k select-pane -U
 bind l select-pane -R
+
+# Disable mouse pane selection - prevents interference with copy-mode mouse selection
+# Use prefix + h/j/k/l or prefix + 0-9 for pane switching instead
+bind -T root MouseDown1Pane send-keys -M
 
